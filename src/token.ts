@@ -26,5 +26,9 @@ type BopToken = {
   type: 'BopToken'
   operator: BinaryOperatorType
 }
+type IdentifierToken = {
+  type: 'IdentifierToken'
+  value: string
+}
 
-export type Token = LAngle | Rangle | StringToken | NumberToken | BopToken | BooleanToken
+export type Token = LAngle | Rangle | StringToken | NumberToken | BopToken | BooleanToken | IdentifierToken

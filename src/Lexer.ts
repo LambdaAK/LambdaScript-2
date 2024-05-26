@@ -2,6 +2,11 @@ import { Token, BinaryOperatorType } from "./token"
 
 const isDigit = (char: string) => /\d/.test(char)
 
+const isAlpha = (char: string) => {
+  const alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
+  return alpha.includes(char)
+}
+
 const lexNumber = (input: string): [Token, string] => {
   let i = 0
   while (isDigit(input[i])) {
@@ -19,6 +24,15 @@ const lexString = (input: string): [Token, string] => {
     i++
   }
   return [{ type: 'StringToken', value: input.slice(1, i) }, input.slice(i + 1)]
+}
+
+const lexIdentifier = (input: string): [Token, string] => {
+  let i = 0
+  while (isAlpha(input[i])) {
+    i++
+  }
+
+  return [{ type: 'IdentifierToken', value: input.slice(0, i) }, input.slice(i)]
 }
 
 export const lex = (input: string): Token[] => {
@@ -59,5 +73,7 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'BooleanToken', value: false }, ...lex(input.slice(5))]
   }
 
-  else throw new Error(`unexpected character ${input[0]}`)
+  const [token, rest] = lexIdentifier(input)
+  return [token, ...lex(rest)]
+
 }

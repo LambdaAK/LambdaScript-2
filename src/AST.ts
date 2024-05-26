@@ -12,7 +12,12 @@ type BooleanNode = {
   value: boolean
 }
 
-type FactorNode = StringNode | NumberNode | BooleanNode
+type IdentifierNode = {
+  type: "IdentifierNode",
+  value: string
+}
+
+type FactorNode = StringNode | NumberNode | BooleanNode | IdentifierNode
 
 type TimesNode = {
   type: 'TimesNode',
@@ -64,6 +69,9 @@ const stringOfArithNode = (node: ArithNode): string => {
   }
   if (node.type === 'BooleanNode') {
     return node.value.toString()
+  }
+  if (node.type === 'IdentifierNode') {
+    return node.value
   }
 
   throw new Error('Unreachable in stringOfArithNode')

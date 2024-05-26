@@ -74,7 +74,20 @@ const booleanParser: Parser<FactorNode> =
     else return { type: 'None' }
   }
 
-export const factorParser = combineParsers([numberParser, stringParser, booleanParser])
+const identifierParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'IdentifierToken') return { type: 'None' }
+
+  const identifierNode: FactorNode = {
+    type: 'IdentifierNode',
+    value: input[0].value
+  }
+
+  return some([identifierNode, input.slice(1)])
+
+}
+
+export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser])
 
 export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, Token[]]> => {
   // parse a list of factors
