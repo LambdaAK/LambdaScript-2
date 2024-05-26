@@ -12,6 +12,10 @@ type NumberToken = {
   type: 'NumberToken'
   value: number
 }
+type BooleanToken = {
+  type: 'BooleanToken'
+  value: boolean
+}
 export enum BinaryOperatorType {
   Times = '*',
   Divide = '/',
@@ -23,4 +27,4 @@ type BopToken = {
   operator: BinaryOperatorType
 }
 
-export type Token = LAngle | Rangle | StringToken | NumberToken | BopToken
+export type Token = LAngle | Rangle | StringToken | NumberToken | BopToken | BooleanToken

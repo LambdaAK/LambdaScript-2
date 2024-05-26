@@ -50,5 +50,14 @@ export const lex = (input: string): Token[] => {
   if (input.startsWith("-")) {
     return [{ type: 'BopToken', operator: BinaryOperatorType.Minus }, ...lex(input.slice(1))]
   }
+
+  if (input.startsWith("True")) {
+    return [{ type: 'BooleanToken', value: true }, ...lex(input.slice(4))]
+  }
+
+  if (input.startsWith("False")) {
+    return [{ type: 'BooleanToken', value: false }, ...lex(input.slice(5))]
+  }
+
   else throw new Error(`unexpected character ${input[0]}`)
 }

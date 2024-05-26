@@ -4,11 +4,11 @@
 
 import { BinaryOperatorType, Token } from "./token";
 import { Maybe, some } from "./maybe";
-import { ArithNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, StringNode, TermNode, TimesNode } from "./AST";
+import { ArithNode, BooleanNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
-const combine = <T, U extends T, W extends T>(p1: Parser<U>, p2: Parser<W>): Parser<T> => {
+const combine = <T>(p1: Parser<T>, p2: Parser<T>): Parser<T> => {
   const p3: Parser<T> = (input: Token[]) => {
     const result = p1(input)
     if (result.type === 'None') {
@@ -21,7 +21,14 @@ const combine = <T, U extends T, W extends T>(p1: Parser<U>, p2: Parser<W>): Par
   return p3
 }
 
-const numberParser: Parser<NumberNode> = (input: Token[]): Maybe<[NumberNode, Token[]]> => {
+const combineParsers = <T>(parsers: Parser<T>[]): Parser<T> => {
+  const combined = parsers.reduce((acc, parser) => {
+    return combine(acc, parser)
+  })
+  return combined
+}
+
+const numberParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'NumberToken') {
     const numberNode: NumberNode = {
@@ -36,7 +43,7 @@ const numberParser: Parser<NumberNode> = (input: Token[]): Maybe<[NumberNode, To
   else return { type: 'None' }
 }
 
-export const stringParser: Parser<StringNode> = (input: Token[]) => {
+export const stringParser: Parser<FactorNode> = (input: Token[]) => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'StringToken') {
     const StringNode: StringNode = {
@@ -51,7 +58,23 @@ export const stringParser: Parser<StringNode> = (input: Token[]) => {
   else return { type: 'None' }
 }
 
-export const factorParser: Parser<FactorNode> = combine(numberParser, stringParser)
+const booleanParser: Parser<FactorNode> =
+  (input: Token[]): Maybe<[BooleanNode, Token[]]> => {
+    if (input.length === 0) return { type: 'None' }
+    if (input[0].type === 'BooleanToken') {
+      const booleanNode: BooleanNode = {
+        type: 'BooleanNode',
+        value: input[0].value
+      }
+      return {
+        type: 'Some',
+        value: [booleanNode, input.slice(1)]
+      }
+    }
+    else return { type: 'None' }
+  }
+
+export const factorParser = combineParsers([numberParser, stringParser, booleanParser])
 
 export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, Token[]]> => {
   // parse a list of factors
@@ -161,11 +184,6 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
       break
     }
   }
-
-  console.log("terms")
-  console.log(terms)
-  console.log("bops")
-  console.log(bops)
 
   const combineTerms = (terms: TermNode[], bops: BinaryOperatorType[]): ArithNode => {
     // If there is only one term, return it. It is a term arith

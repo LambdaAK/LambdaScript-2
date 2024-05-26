@@ -3,7 +3,7 @@ import { lex } from "./Lexer"
 import { arithParser, factorParser, termParser } from "./Parser"
 import { stringOfArithNode } from "./AST"
 
-const s: string = "1 + 2 * 3 + 1"
+const s: string = "1 + 2 + 3 + 4 + 5 + True + False + 1 * 2 * 3 + 1"
 
 const tokens = lex(s)
 

@@ -7,7 +7,12 @@ type NumberNode = {
   value: number
 }
 
-type FactorNode = StringNode | NumberNode
+type BooleanNode = {
+  type: "BooleanNode",
+  value: boolean
+}
+
+type FactorNode = StringNode | NumberNode | BooleanNode
 
 type TimesNode = {
   type: 'TimesNode',
@@ -38,8 +43,6 @@ type MinusNode = {
 type ArithNode = TermNode | PlusNode | MinusNode
 
 
-
-
 const stringOfArithNode = (node: ArithNode): string => {
   if (node.type === 'NumberNode') {
     return node.value.toString()
@@ -59,6 +62,9 @@ const stringOfArithNode = (node: ArithNode): string => {
   if (node.type === 'MinusNode') {
     return stringOfArithNode(node.left) + "-" + stringOfArithNode(node.right)
   }
+  if (node.type === 'BooleanNode') {
+    return node.value.toString()
+  }
 
   throw new Error('Unreachable in stringOfArithNode')
 }
@@ -73,5 +79,6 @@ export {
   PlusNode,
   MinusNode,
   ArithNode,
-  stringOfArithNode
+  stringOfArithNode,
+  BooleanNode
 }
