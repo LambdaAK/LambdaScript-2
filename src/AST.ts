@@ -17,7 +17,12 @@ type IdentifierNode = {
   value: string
 }
 
-type FactorNode = StringNode | NumberNode | BooleanNode | IdentifierNode
+type ParenFactorNode = {
+  type: 'ParenFactorNode',
+  node: ArithNode
+}
+
+type FactorNode = StringNode | NumberNode | BooleanNode | IdentifierNode | ParenFactorNode
 
 type TimesNode = {
   type: 'TimesNode',

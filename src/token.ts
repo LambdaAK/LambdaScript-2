@@ -4,6 +4,15 @@ type LAngle = {
 type Rangle = {
   type: 'RAngle'
 }
+
+type LParen = {
+  type: 'LParen'
+}
+
+type RParen = {
+  type: 'RParen'
+}
+
 type StringToken = {
   type: 'StringToken'
   value: string
@@ -31,4 +40,6 @@ type IdentifierToken = {
   value: string
 }
 
-export type Token = LAngle | Rangle | StringToken | NumberToken | BopToken | BooleanToken | IdentifierToken
+export type Token = LAngle | Rangle | StringToken
+  | NumberToken | BopToken | BooleanToken
+  | IdentifierToken | LParen | RParen

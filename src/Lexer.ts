@@ -44,6 +44,15 @@ export const lex = (input: string): Token[] => {
   if (input.startsWith('>')) {
     return [{ type: 'RAngle' }, ...lex(input.slice(1))]
   }
+
+  if (input.startsWith('(')) {
+    return [{ type: 'LParen' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith(')')) {
+    return [{ type: 'RParen' }, ...lex(input.slice(1))]
+  }
+
   if (isDigit(input[0])) {
     const [token, rest] = lexNumber(input)
     return [token, ...lex(rest)]

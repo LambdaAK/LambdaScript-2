@@ -87,7 +87,32 @@ const identifierParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode
 
 }
 
-export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser])
+const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'LParen') return { type: 'None' }
+
+  let rest = input.slice(1)
+  const result = arithParser(rest)
+  if (result.type === 'None') {
+    return { type: 'None' }
+  }
+
+  const node = result.value[0]
+  rest = result.value[1]
+
+  if (rest.length === 0 || rest[0].type !== 'RParen') {
+    return { type: 'None' }
+  }
+
+  return some([{
+    type: 'ParenFactorNode',
+    node: node
+  }, rest.slice(1)])
+
+
+}
+
+export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser, parenFactorParser])
 
 export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, Token[]]> => {
   // parse a list of factors
