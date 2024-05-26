@@ -15,4 +15,4 @@ export const some = <T>(v: T): Maybe<T> => {
   }
 }
 
-export const none = () => { return {} }
+export const none = (): None => { return { type: 'None' } }

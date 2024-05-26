@@ -1,9 +1,9 @@
 import { Maybe, none, some } from "./maybe"
 import { lex } from "./Lexer"
-import { arithParser, factorParser, termParser } from "./Parser"
-import { ArithNode, stringOfArithNode } from "./AST"
+import { appParser, arithParser, factorParser, termParser } from "./Parser"
+import { ArithNode } from "./AST"
 
-const s: string = ""
+const s: string = "1 * 2 + b c * 2"
 
 const tokens = lex(s)
 

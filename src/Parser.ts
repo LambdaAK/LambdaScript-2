@@ -3,8 +3,8 @@
 
 
 import { BinaryOperatorType, Token } from "./token";
-import { Maybe, some } from "./maybe";
-import { ArithNode, BooleanNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, StringNode, TermNode, TimesNode } from "./AST";
+import { Maybe, none, some } from "./maybe";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -109,21 +109,67 @@ const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNod
     node: node
   }, rest.slice(1)])
 
-
 }
 
 export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser, parenFactorParser])
 
+export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Token[]]> => {
+  // parse a list of factors while possible
+  // then, fold them an application
+  // application is left associative
+  const factors: FactorNode[] = []
+  let rest: Token[] = input
+  while (true) {
+    const result = factorParser(rest)
+    if (result.type == "None") {
+
+      break
+    }
+    const [newFactor, restTokens] = result.value
+    factors.push(newFactor)
+    rest = restTokens
+  }
+
+  const combineFactorsIntoApp = (factors: FactorNode[]): AppNode => {
+    // a b c === (a b) c
+
+    // take off the last one
+
+    if (factors.length == 1) return factors[0]
+
+    const allFactorsButLast = factors.slice(0, factors.length - 1)
+    const right = factors[factors.length - 1]
+
+    const left = combineFactorsIntoApp(allFactorsButLast)
+
+    const newApp: ApplicationNode = {
+      type: "ApplicationNode",
+      left: left,
+      right: right
+    }
+
+    return newApp
+
+  }
+
+  // fold the factors into an AppNode
+
+  const appNode: AppNode = combineFactorsIntoApp(factors)
+
+  return some([appNode, rest])
+
+}
+
 export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, Token[]]> => {
   // parse a list of factors
-  const factors: FactorNode[] = []
+  const factors: AppNode[] = []
   const bops: BinaryOperatorType[] = []
 
   let rest = input
   // parse a list of factors
   while (true) {
     // parse a factor
-    const result = factorParser(rest)
+    const result = appParser(rest)
     if (result.type === 'None') {
       break
     }
@@ -147,7 +193,7 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
     }
   }
 
-  const combineFactors = (factors: FactorNode[], bops: BinaryOperatorType[]): TermNode => {
+  const combineFactors = (factors: AppNode[], bops: BinaryOperatorType[]): TermNode => {
     // If there is only one factor, return it. It is a factor term
     if (factors.length === 1) {
       return factors[0]

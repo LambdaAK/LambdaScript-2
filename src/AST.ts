@@ -19,79 +19,61 @@ type IdentifierNode = {
 
 type ParenFactorNode = {
   type: 'ParenFactorNode',
-  node: ArithNode
+  node: ArithLevel
 }
 
-type FactorNode = StringNode | NumberNode | BooleanNode | IdentifierNode | ParenFactorNode
+type FactorLevel = StringNode | NumberNode | BooleanNode | IdentifierNode | ParenFactorNode
+
+/**
+ * Represents a function appliation `f x`
+ */
+type AppNode = {
+  type: 'ApplicationNode',
+  left: AppLevel,
+  right: FactorLevel
+}
+
+type AppLevel = AppNode | FactorLevel
 
 type TimesNode = {
   type: 'TimesNode',
-  left: TermNode,
-  right: FactorNode
+  left: TermLevel,
+  right: AppLevel
 }
 
 type DivideNode = {
   type: 'DivideNode',
-  left: TermNode,
-  right: FactorNode
+  left: TermLevel,
+  right: AppLevel
 }
 
-type TermNode = FactorNode | TimesNode | DivideNode
+type TermLevel = AppLevel | TimesNode | DivideNode
 
 type PlusNode = {
   type: 'PlusNode',
-  left: ArithNode,
-  right: TermNode
+  left: ArithLevel,
+  right: TermLevel
 }
 
 type MinusNode = {
   type: 'MinusNode',
-  left: ArithNode,
-  right: TermNode
+  left: ArithLevel,
+  right: TermLevel
 }
 
-type ArithNode = TermNode | PlusNode | MinusNode
-
-
-const stringOfArithNode = (node: ArithNode): string => {
-  if (node.type === 'NumberNode') {
-    return node.value.toString()
-  }
-  if (node.type === 'StringNode') {
-    return node.value
-  }
-  if (node.type === 'TimesNode') {
-    return stringOfArithNode(node.left) + "*" + stringOfArithNode(node.right)
-  }
-  if (node.type === 'DivideNode') {
-    return stringOfArithNode(node.left) + "/" + stringOfArithNode(node.right)
-  }
-  if (node.type === 'PlusNode') {
-    return stringOfArithNode(node.left) + "+" + stringOfArithNode(node.right)
-  }
-  if (node.type === 'MinusNode') {
-    return stringOfArithNode(node.left) + "-" + stringOfArithNode(node.right)
-  }
-  if (node.type === 'BooleanNode') {
-    return node.value.toString()
-  }
-  if (node.type === 'IdentifierNode') {
-    return node.value
-  }
-
-  throw new Error('Unreachable in stringOfArithNode')
-}
+type ArithLevel = TermLevel | PlusNode | MinusNode
 
 export {
   StringNode,
   NumberNode,
-  FactorNode,
+  FactorLevel as FactorNode,
   TimesNode,
   DivideNode,
-  TermNode,
+  TermLevel as TermNode,
   PlusNode,
   MinusNode,
-  ArithNode,
-  stringOfArithNode,
-  BooleanNode
+  ArithLevel as ArithNode,
+  BooleanNode,
+  AppLevel as AppNode,
+  AppNode as ApplicationNode
 }
