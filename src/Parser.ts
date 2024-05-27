@@ -2,9 +2,9 @@
 // parser combinators
 
 
-import { AddOperatorType, BinaryOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
+import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -372,5 +372,58 @@ export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
   }
 
   return some([combineAriths(ariths, bops), rest])
+
+}
+
+export const conjunctionParser: Parser<ConjunctionLevel> = (input: Token[]): Maybe<[ConjunctionLevel, Token[]]> => {
+  const rels: RelLevel[] = []
+
+  let rest = input
+
+  while (true) {
+    const result = relParser(rest)
+    if (result.type === "None") {
+      break
+    }
+    else {
+      rels.push(result.value[0])
+      rest = result.value[1]
+    }
+
+    if (rest.length === 0) {
+      break
+    }
+
+    // parse a conjunction operator
+
+    if (rest[0].type === 'BopToken' && rest[0].operator === ConjunctionOperatorType.And) {
+      rest = rest.slice(1)
+    }
+    else {
+      break
+    }
+  }
+
+  const combineRels = (rels: RelLevel[]): ConjunctionLevel => {
+    if (rels.length === 1) {
+      return rels[0]
+    }
+
+    const allRelsButLast = rels.slice(0, rels.length - 1)
+    const lastRel = rels[rels.length - 1]
+
+    const left: ConjunctionLevel = combineRels(allRelsButLast)
+
+    const conjunctionNode: ConjunctionLevel = {
+      type: 'ConjunctionNode',
+      left: left,
+      right: lastRel
+    }
+
+    return conjunctionNode
+  }
+
+  return some([combineRels(rels), rest])
+
 
 }

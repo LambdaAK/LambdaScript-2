@@ -88,9 +88,17 @@ type RelNode = {
   operator: RelationalOperatorType
 }
 
+type ConjunctionNode = {
+  type: "ConjunctionNode",
+  left: ConjunctionLevel,
+  right: RelLevel
+}
+
+type ConjunctionLevel = ConjunctionNode | RelLevel
+
 // string of node
 // put parenthesis to make the order of operations clear
-const stringOfNode = (node: RelLevel): string => {
+const stringOfNode = (node: ConjunctionLevel): string => {
   switch (node.type) {
     case 'MinusNode':
       return `(${stringOfNode(node.left)} - ${stringOfNode(node.right)})`
@@ -114,6 +122,8 @@ const stringOfNode = (node: RelLevel): string => {
       return `(${stringOfNode(node.node)})`
     case 'RelNode':
       return `(${stringOfNode(node.left)} ${node.operator} ${stringOfNode(node.right)})`
+    case 'ConjunctionNode':
+      return `(${stringOfNode(node.left)} && ${stringOfNode(node.right)})`
   }
 }
 
@@ -132,5 +142,7 @@ export {
   AppNode as ApplicationNode,
   stringOfNode,
   RelLevel,
-  RelNode
+  RelNode,
+  ConjunctionNode,
+  ConjunctionLevel
 }

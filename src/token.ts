@@ -45,7 +45,20 @@ export enum MultiplyOperatorType {
   Divide = '/'
 }
 
-export type BinaryOperatorType = RelationalOperatorType | AddOperatorType | MultiplyOperatorType
+export enum DisjunctionOperatorType {
+  Or = '||'
+}
+
+export enum ConjunctionOperatorType {
+  And = '&&'
+}
+
+export type BinaryOperatorType =
+  | RelationalOperatorType
+  | AddOperatorType
+  | MultiplyOperatorType
+  | ConjunctionOperatorType
+  | DisjunctionOperatorType
 
 type BopToken = {
   type: 'BopToken'
