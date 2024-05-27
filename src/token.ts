@@ -25,12 +25,28 @@ type BooleanToken = {
   type: 'BooleanToken'
   value: boolean
 }
-export enum BinaryOperatorType {
-  Times = '*',
-  Divide = '/',
+
+export enum RelationalOperatorType {
+  LessThan = '<',
+  GreaterThan = '>',
+  LessThanEqual = '<=',
+  GreaterThanEqual = '>=',
+  Equal = '==',
+  NotEqual = '!='
+}
+
+export enum AddOperatorType {
   Plus = '+',
   Minus = '-'
 }
+
+export enum MultiplyOperatorType {
+  Times = '*',
+  Divide = '/'
+}
+
+export type BinaryOperatorType = RelationalOperatorType | AddOperatorType | MultiplyOperatorType
+
 type BopToken = {
   type: 'BopToken'
   operator: BinaryOperatorType

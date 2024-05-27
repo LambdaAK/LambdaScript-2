@@ -1,7 +1,10 @@
+import { RelationalOperatorType } from "./token"
+
 type StringNode = {
   type: 'StringNode',
   value: string
 }
+
 type NumberNode = {
   type: "NumberNode",
   value: number
@@ -22,7 +25,12 @@ type ParenFactorNode = {
   node: ArithLevel
 }
 
-type FactorLevel = StringNode | NumberNode | BooleanNode | IdentifierNode | ParenFactorNode
+type FactorLevel =
+  | StringNode
+  | NumberNode
+  | BooleanNode
+  | IdentifierNode
+  | ParenFactorNode
 
 /**
  * Represents a function appliation `f x`
@@ -47,7 +55,10 @@ type DivideNode = {
   right: AppLevel
 }
 
-type TermLevel = AppLevel | TimesNode | DivideNode
+type TermLevel =
+  | AppLevel
+  | TimesNode
+  | DivideNode
 
 type PlusNode = {
   type: 'PlusNode',
@@ -61,7 +72,50 @@ type MinusNode = {
   right: TermLevel
 }
 
-type ArithLevel = TermLevel | PlusNode | MinusNode
+type ArithLevel =
+  | TermLevel
+  | PlusNode
+  | MinusNode
+
+type RelLevel =
+  | RelNode
+  | ArithLevel
+
+type RelNode = {
+  type: "RelNode",
+  left: RelLevel,
+  right: ArithLevel,
+  operator: RelationalOperatorType
+}
+
+// string of node
+// put parenthesis to make the order of operations clear
+const stringOfNode = (node: RelLevel): string => {
+  switch (node.type) {
+    case 'MinusNode':
+      return `(${stringOfNode(node.left)} - ${stringOfNode(node.right)})`
+    case 'PlusNode':
+      return `(${stringOfNode(node.left)} + ${stringOfNode(node.right)})`
+    case 'TimesNode':
+      return `(${stringOfNode(node.left)} * ${stringOfNode(node.right)})`
+    case 'DivideNode':
+      return `(${stringOfNode(node.left)} / ${stringOfNode(node.right)})`
+    case 'ApplicationNode':
+      return `${stringOfNode(node.left)} ${stringOfNode(node.right)}`
+    case 'StringNode':
+      return `"${node.value}"`
+    case 'NumberNode':
+      return node.value.toString()
+    case 'BooleanNode':
+      return node.value.toString()
+    case 'IdentifierNode':
+      return node.value
+    case 'ParenFactorNode':
+      return `(${stringOfNode(node.node)})`
+    case 'RelNode':
+      return `(${stringOfNode(node.left)} ${node.operator} ${stringOfNode(node.right)})`
+  }
+}
 
 export {
   StringNode,
@@ -75,5 +129,8 @@ export {
   ArithLevel as ArithNode,
   BooleanNode,
   AppLevel as AppNode,
-  AppNode as ApplicationNode
+  AppNode as ApplicationNode,
+  stringOfNode,
+  RelLevel,
+  RelNode
 }

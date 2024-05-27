@@ -1,4 +1,4 @@
-import { Token, BinaryOperatorType } from "./token"
+import { Token, BinaryOperatorType, AddOperatorType, MultiplyOperatorType, RelationalOperatorType } from "./token"
 
 const isDigit = (char: string) => /\d/.test(char)
 
@@ -38,12 +38,6 @@ const lexIdentifier = (input: string): [Token, string] => {
 export const lex = (input: string): Token[] => {
   if (input.length === 0) return []
   if (input.startsWith(' ')) return lex(input.slice(1))
-  if (input.startsWith('<')) {
-    return [{ type: 'LAngle' }, ...lex(input.slice(1))]
-  }
-  if (input.startsWith('>')) {
-    return [{ type: 'RAngle' }, ...lex(input.slice(1))]
-  }
 
   if (input.startsWith('(')) {
     return [{ type: 'LParen' }, ...lex(input.slice(1))]
@@ -62,16 +56,40 @@ export const lex = (input: string): Token[] => {
     return [token, ...lex(rest)]
   }
   if (input.startsWith("*")) {
-    return [{ type: 'BopToken', operator: BinaryOperatorType.Times }, ...lex(input.slice(1))]
+    return [{ type: 'BopToken', operator: MultiplyOperatorType.Times }, ...lex(input.slice(1))]
   }
   if (input.startsWith("/")) {
-    return [{ type: 'BopToken', operator: BinaryOperatorType.Divide }, ...lex(input.slice(1))]
+    return [{ type: 'BopToken', operator: MultiplyOperatorType.Divide }, ...lex(input.slice(1))]
   }
   if (input.startsWith("+")) {
-    return [{ type: 'BopToken', operator: BinaryOperatorType.Plus }, ...lex(input.slice(1))]
+    return [{ type: 'BopToken', operator: AddOperatorType.Plus }, ...lex(input.slice(1))]
   }
   if (input.startsWith("-")) {
-    return [{ type: 'BopToken', operator: BinaryOperatorType.Minus }, ...lex(input.slice(1))]
+    return [{ type: 'BopToken', operator: AddOperatorType.Minus }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("==")) {
+    return [{ type: 'BopToken', operator: RelationalOperatorType.Equal }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith("!=")) {
+    return [{ type: 'BopToken', operator: RelationalOperatorType.NotEqual }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith("<=")) {
+    return [{ type: 'BopToken', operator: RelationalOperatorType.LessThanEqual }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith(">=")) {
+    return [{ type: 'BopToken', operator: RelationalOperatorType.GreaterThanEqual }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith(">")) {
+    return [{ type: 'BopToken', operator: RelationalOperatorType.GreaterThan }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("<")) {
+    return [{ type: 'BopToken', operator: RelationalOperatorType.LessThan }, ...lex(input.slice(1))]
   }
 
   if (input.startsWith("True")) {

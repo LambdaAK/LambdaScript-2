@@ -2,9 +2,9 @@
 // parser combinators
 
 
-import { BinaryOperatorType, Token } from "./token";
+import { AddOperatorType, BinaryOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, StringNode, TermNode, TimesNode } from "./AST";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -183,8 +183,8 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
       break
     }
     if (rest[0].type === 'BopToken'
-      && (rest[0].operator === BinaryOperatorType.Times
-        || rest[0].operator === BinaryOperatorType.Divide)) {
+      && (rest[0].operator === MultiplyOperatorType.Times
+        || rest[0].operator === MultiplyOperatorType.Divide)) {
       bops.push(rest[0].operator)
       rest = rest.slice(1)
     }
@@ -207,7 +207,7 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
 
     const left = combineFactors(allFactorsButLast, allBopsButLast)
 
-    if (lastBop === BinaryOperatorType.Times) {
+    if (lastBop === MultiplyOperatorType.Times) {
       const timesNode: TimesNode = {
         type: 'TimesNode',
         left: left,
@@ -217,7 +217,7 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
 
     }
 
-    if (lastBop === BinaryOperatorType.Divide) {
+    if (lastBop === MultiplyOperatorType.Divide) {
       const divideNode: DivideNode = {
         type: 'DivideNode',
         left: left,
@@ -259,8 +259,8 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
     }
 
     if (rest[0].type === 'BopToken' &&
-      (rest[0].operator === BinaryOperatorType.Plus
-        || rest[0].operator === BinaryOperatorType.Minus)) {
+      (rest[0].operator === AddOperatorType.Plus
+        || rest[0].operator === AddOperatorType.Minus)) {
       bops.push(rest[0].operator)
       rest = rest.slice(1)
     }
@@ -283,7 +283,7 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
 
     const left = combineTerms(allTermsButLast, allBopsButLast)
 
-    if (lastBop === BinaryOperatorType.Plus) {
+    if (lastBop === AddOperatorType.Plus) {
       const plusNode: PlusNode = {
         type: 'PlusNode',
         left: left,
@@ -292,7 +292,7 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
       return plusNode
     }
 
-    if (lastBop === BinaryOperatorType.Minus) {
+    if (lastBop === AddOperatorType.Minus) {
       const minusNode: MinusNode = {
         type: 'MinusNode',
         left: left,
@@ -308,5 +308,69 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
     type: 'Some',
     value: [combineTerms(terms, bops), rest]
   }
+
+}
+
+export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
+
+  const ariths: ArithNode[] = []
+  const bops: RelationalOperatorType[] = []
+
+  let rest = input
+
+
+  while (true) {
+    const result = arithParser(rest)
+    if (result.type === 'None') {
+      break
+    }
+    else {
+      ariths.push(result.value[0])
+      rest = result.value[1]
+    }
+
+    if (rest.length === 0) {
+      break
+    }
+
+    if (rest[0].type === 'BopToken' &&
+      (rest[0].operator === RelationalOperatorType.LessThan
+        || rest[0].operator === RelationalOperatorType.GreaterThan
+        || rest[0].operator === RelationalOperatorType.LessThanEqual
+        || rest[0].operator === RelationalOperatorType.GreaterThanEqual
+        || rest[0].operator === RelationalOperatorType.Equal
+        || rest[0].operator === RelationalOperatorType.NotEqual)) {
+      bops.push(rest[0].operator)
+      rest = rest.slice(1)
+    }
+    else {
+      break
+    }
+  }
+
+  const combineAriths = (ariths: ArithNode[], bops: RelationalOperatorType[]): RelLevel => {
+    if (ariths.length === 1) {
+      return ariths[0]
+    }
+
+    const allArithsButLast = ariths.slice(0, ariths.length - 1)
+    const lastArith = ariths[ariths.length - 1]
+
+    const allBopsButLast = bops.slice(0, bops.length - 1)
+    const lastBop = bops[bops.length - 1]
+
+    const left = combineAriths(allArithsButLast, allBopsButLast)
+
+    const relNode: RelLevel = {
+      type: 'RelNode',
+      left: left,
+      right: lastArith,
+      operator: lastBop
+    }
+
+    return relNode
+  }
+
+  return some([combineAriths(ariths, bops), rest])
 
 }
