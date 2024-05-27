@@ -2,9 +2,9 @@
 // parser combinators
 
 
-import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
+import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, DisjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, DisjunctionLevel, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -92,7 +92,7 @@ const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNod
   if (input[0].type !== 'LParen') return { type: 'None' }
 
   let rest = input.slice(1)
-  const result = arithParser(rest)
+  const result: Maybe<[DisjunctionLevel, Token[]]> = disjunctionParser(rest)
   if (result.type === 'None') {
     return { type: 'None' }
   }
@@ -122,7 +122,6 @@ export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Toke
   while (true) {
     const result = factorParser(rest)
     if (result.type == "None") {
-
       break
     }
     const [newFactor, restTokens] = result.value
@@ -130,11 +129,12 @@ export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Toke
     rest = restTokens
   }
 
+
   const combineFactorsIntoApp = (factors: FactorNode[]): AppNode => {
+
     // a b c === (a b) c
 
     // take off the last one
-
     if (factors.length == 1) return factors[0]
 
     const allFactorsButLast = factors.slice(0, factors.length - 1)
@@ -153,6 +153,8 @@ export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Toke
   }
 
   // fold the factors into an AppNode
+
+  if (factors.length === 0) return none()
 
   const appNode: AppNode = combineFactorsIntoApp(factors)
 
@@ -230,6 +232,8 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
 
   }
 
+  if (factors.length === 0) return none()
+
   return {
     type: 'Some',
     value: [combineFactors(factors, bops), rest]
@@ -304,6 +308,8 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
     throw new Error('Unreachable in combineTerms')
   }
 
+  if (terms.length === 0) return none()
+
   return {
     type: 'Some',
     value: [combineTerms(terms, bops), rest]
@@ -371,6 +377,8 @@ export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
     return relNode
   }
 
+  if (ariths.length === 0) return none()
+
   return some([combineAriths(ariths, bops), rest])
 
 }
@@ -423,7 +431,62 @@ export const conjunctionParser: Parser<ConjunctionLevel> = (input: Token[]): May
     return conjunctionNode
   }
 
+  if (rels.length === 0) return none()
+
   return some([combineRels(rels), rest])
+}
+
+export const disjunctionParser: Parser<DisjunctionLevel> = (input: Token[]): Maybe<[DisjunctionLevel, Token[]]> => {
+  const conjunctions: ConjunctionLevel[] = []
+
+  let rest = input
+
+  while (true) {
+    const result = conjunctionParser(rest)
 
 
+
+
+    if (result.type === 'None') {
+      break
+    }
+    else {
+      conjunctions.push(result.value[0])
+      rest = result.value[1]
+    }
+
+    if (rest.length === 0) {
+      break
+    }
+
+    if (rest[0].type === 'BopToken' && rest[0].operator === DisjunctionOperatorType.Or) {
+      rest = rest.slice(1)
+    }
+    else {
+      break
+    }
+  }
+
+  const combineConjunctions = (conjunctions: ConjunctionLevel[]): DisjunctionLevel => {
+    if (conjunctions.length === 1) {
+      return conjunctions[0]
+    }
+
+    const allConjunctionsButLast = conjunctions.slice(0, conjunctions.length - 1)
+    const lastConjunction = conjunctions[conjunctions.length - 1]
+
+    const left = combineConjunctions(allConjunctionsButLast)
+
+    const disjunctionNode: DisjunctionLevel = {
+      type: 'DisjunctionNode',
+      left: left,
+      right: lastConjunction
+    }
+
+    return disjunctionNode
+  }
+
+  if (conjunctions.length === 0) return none()
+
+  return some([combineConjunctions(conjunctions), rest])
 }

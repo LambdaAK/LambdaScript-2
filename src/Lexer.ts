@@ -1,4 +1,4 @@
-import { Token, BinaryOperatorType, AddOperatorType, MultiplyOperatorType, RelationalOperatorType, ConjunctionOperatorType } from "./token"
+import { Token, BinaryOperatorType, AddOperatorType, MultiplyOperatorType, RelationalOperatorType, ConjunctionOperatorType, DisjunctionOperatorType } from "./token"
 
 const isDigit = (char: string) => /\d/.test(char)
 
@@ -94,6 +94,10 @@ export const lex = (input: string): Token[] => {
 
   if (input.startsWith("&&")) {
     return [{ type: 'BopToken', operator: ConjunctionOperatorType.And }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith("||")) {
+    return [{ type: 'BopToken', operator: DisjunctionOperatorType.Or }, ...lex(input.slice(2))]
   }
 
   if (input.startsWith("True")) {

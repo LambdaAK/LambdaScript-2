@@ -1,13 +1,13 @@
 import { Maybe, none, some } from "./maybe"
 import { lex } from "./Lexer"
-import { appParser, arithParser, conjunctionParser, factorParser, relParser, termParser } from "./Parser"
+import { appParser, arithParser, conjunctionParser, disjunctionParser, factorParser, relParser, termParser } from "./Parser"
 import { ArithNode, stringOfNode } from "./AST"
 
-const s: string = "a && b && c && d"
+const s: string = ""
 
 const tokens = lex(s)
 
-const nodeMaybe = conjunctionParser(tokens)
+const nodeMaybe = disjunctionParser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')

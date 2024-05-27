@@ -22,7 +22,7 @@ type IdentifierNode = {
 
 type ParenFactorNode = {
   type: 'ParenFactorNode',
-  node: ArithLevel
+  node: DisjunctionLevel
 }
 
 type FactorLevel =
@@ -96,9 +96,17 @@ type ConjunctionNode = {
 
 type ConjunctionLevel = ConjunctionNode | RelLevel
 
+type DisjunctionNode = {
+  type: "DisjunctionNode",
+  left: DisjunctionLevel,
+  right: ConjunctionLevel
+}
+
+type DisjunctionLevel = DisjunctionNode | ConjunctionLevel
+
 // string of node
 // put parenthesis to make the order of operations clear
-const stringOfNode = (node: ConjunctionLevel): string => {
+const stringOfNode = (node: DisjunctionLevel): string => {
   switch (node.type) {
     case 'MinusNode':
       return `(${stringOfNode(node.left)} - ${stringOfNode(node.right)})`
@@ -124,6 +132,8 @@ const stringOfNode = (node: ConjunctionLevel): string => {
       return `(${stringOfNode(node.left)} ${node.operator} ${stringOfNode(node.right)})`
     case 'ConjunctionNode':
       return `(${stringOfNode(node.left)} && ${stringOfNode(node.right)})`
+    case 'DisjunctionNode':
+      return `(${stringOfNode(node.left)} || ${stringOfNode(node.right)})`
   }
 }
 
@@ -144,5 +154,7 @@ export {
   RelLevel,
   RelNode,
   ConjunctionNode,
-  ConjunctionLevel
+  ConjunctionLevel,
+  DisjunctionNode,
+  DisjunctionLevel
 }
