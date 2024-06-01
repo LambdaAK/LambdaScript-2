@@ -25,11 +25,16 @@ type ParenFactorNode = {
   node: DisjunctionLevel
 }
 
+type NilNode = {
+  type: 'NilNode'
+}
+
 type FactorLevel =
   | StringNode
   | NumberNode
   | BooleanNode
   | IdentifierNode
+  | NilNode
   | ParenFactorNode
 
 /**
@@ -104,9 +109,17 @@ type DisjunctionNode = {
 
 type DisjunctionLevel = DisjunctionNode | ConjunctionLevel
 
+type ConsNode = {
+  type: "ConsNode",
+  left: DisjunctionLevel,
+  right: ConsLevel
+}
+
+type ConsLevel = ConsNode | DisjunctionLevel
+
 // string of node
 // put parenthesis to make the order of operations clear
-const stringOfNode = (node: DisjunctionLevel): string => {
+const stringOfNode = (node: ConsLevel): string => {
   switch (node.type) {
     case 'MinusNode':
       return `(${stringOfNode(node.left)} - ${stringOfNode(node.right)})`
@@ -134,6 +147,10 @@ const stringOfNode = (node: DisjunctionLevel): string => {
       return `(${stringOfNode(node.left)} && ${stringOfNode(node.right)})`
     case 'DisjunctionNode':
       return `(${stringOfNode(node.left)} || ${stringOfNode(node.right)})`
+    case 'ConsNode':
+      return `(${stringOfNode(node.left)} :: ${stringOfNode(node.right)})`
+    case 'NilNode':
+      return '[]'
   }
 }
 
@@ -156,5 +173,8 @@ export {
   ConjunctionNode,
   ConjunctionLevel,
   DisjunctionNode,
-  DisjunctionLevel
+  DisjunctionLevel,
+  ConsNode,
+  ConsLevel,
+  NilNode
 }

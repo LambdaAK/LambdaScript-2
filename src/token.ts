@@ -25,6 +25,9 @@ type BooleanToken = {
   type: 'BooleanToken'
   value: boolean
 }
+type NilToken = {
+  type: 'NilToken'
+}
 
 export enum RelationalOperatorType {
   LessThan = '<',
@@ -53,12 +56,17 @@ export enum ConjunctionOperatorType {
   And = '&&'
 }
 
+export enum ConsOperatorType {
+  Cons = '::'
+}
+
 export type BinaryOperatorType =
   | RelationalOperatorType
   | AddOperatorType
   | MultiplyOperatorType
   | ConjunctionOperatorType
   | DisjunctionOperatorType
+  | ConsOperatorType
 
 type BopToken = {
   type: 'BopToken'
@@ -71,4 +79,4 @@ type IdentifierToken = {
 
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
-  | IdentifierToken | LParen | RParen
+  | IdentifierToken | LParen | RParen | NilToken

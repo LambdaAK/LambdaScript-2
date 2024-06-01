@@ -1,4 +1,4 @@
-import { Token, BinaryOperatorType, AddOperatorType, MultiplyOperatorType, RelationalOperatorType, ConjunctionOperatorType, DisjunctionOperatorType } from "./token"
+import { Token, BinaryOperatorType, AddOperatorType, MultiplyOperatorType, RelationalOperatorType, ConjunctionOperatorType, DisjunctionOperatorType, ConsOperatorType } from "./token"
 
 const isDigit = (char: string) => /\d/.test(char)
 
@@ -100,12 +100,20 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'BopToken', operator: DisjunctionOperatorType.Or }, ...lex(input.slice(2))]
   }
 
+  if (input.startsWith("::")) {
+    return [{ type: 'BopToken', operator: ConsOperatorType.Cons }, ...lex(input.slice(2))]
+  }
+
   if (input.startsWith("True")) {
     return [{ type: 'BooleanToken', value: true }, ...lex(input.slice(4))]
   }
 
   if (input.startsWith("False")) {
     return [{ type: 'BooleanToken', value: false }, ...lex(input.slice(5))]
+  }
+
+  if (input.startsWith("[]")) {
+    return [{ type: 'NilToken' }, ...lex(input.slice(2))]
   }
 
   const [token, rest] = lexIdentifier(input)

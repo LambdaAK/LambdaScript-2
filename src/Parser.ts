@@ -1,10 +1,9 @@
 
 // parser combinators
 
-
-import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, DisjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
+import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, ConsOperatorType, DisjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, DisjunctionLevel, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, ConsLevel, DisjunctionLevel, DivideNode, FactorNode, MinusNode, NumberNode, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -87,6 +86,17 @@ const identifierParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode
 
 }
 
+const nilParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'NilToken') return { type: 'None' }
+
+  const nilNode: FactorNode = {
+    type: 'NilNode'
+  }
+
+  return some([nilNode, input.slice(1)])
+}
+
 const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'LParen') return { type: 'None' }
@@ -111,7 +121,7 @@ const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNod
 
 }
 
-export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser, parenFactorParser])
+export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, parenFactorParser])
 
 export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Token[]]> => {
   // parse a list of factors while possible
@@ -490,3 +500,36 @@ export const disjunctionParser: Parser<DisjunctionLevel> = (input: Token[]): May
 
   return some([combineConjunctions(conjunctions), rest])
 }
+
+export const consParser: Parser<ConsLevel> = (input: Token[]): Maybe<[ConsLevel, Token[]]> => {
+  // parse a disjunction
+  const result = disjunctionParser(input)
+  if (result.type === 'None') {
+    return none()
+  }
+  const [disjunction, rest] = result.value
+  // check if the next token is a cons operator
+  if (rest.length === 0) {
+    return some([disjunction, rest])
+  }
+  if (rest[0].type === 'BopToken' && rest[0].operator === ConsOperatorType.Cons) {
+    const tokensAfterCons = rest.slice(1)
+    // parse a ConsLevel and make a ConsNode
+    const result2 = consParser(tokensAfterCons)
+    if (result2.type === 'None') {
+      return none()
+    }
+    const [consLevel, rest2] = result2.value
+    const consNode: ConsLevel = {
+      type: 'ConsNode',
+      left: disjunction,
+      right: consLevel
+    }
+
+    return some([consNode, rest2])
+  }
+  else {
+    // since the next token is an operator, but not a cons operator, do not continue parsing
+    return some([disjunction, rest])
+  }
+} 
