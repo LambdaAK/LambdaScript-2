@@ -58,6 +58,18 @@ export const lex = (input: string): Token[] => {
   if (input.startsWith("->")) {
     return [{ type: 'RightArrow' }, ...lex(input.slice(2))]
   }
+  if (input.startsWith("Unit")) {
+    return [{ type: 'UnitTypeToken' }, ...lex(input.slice(4))]
+  }
+  if (input.startsWith("Bool")) {
+    return [{ type: 'BoolTypeToken' }, ...lex(input.slice(4))]
+  }
+  if (input.startsWith("String")) {
+    return [{ type: 'StringTypeToken' }, ...lex(input.slice(6))]
+  }
+  if (input.startsWith("Int")) {
+    return [{ type: 'IntTypeToken' }, ...lex(input.slice(3))]
+  }
   if (input.startsWith("*")) {
     return [{ type: 'BopToken', operator: MultiplyOperatorType.Times }, ...lex(input.slice(1))]
   }
@@ -130,6 +142,7 @@ export const lex = (input: string): Token[] => {
   if (input.startsWith("fn")) {
     return [{ type: 'FnToken' }, ...lex(input.slice(2))]
   }
+
 
   const [token, rest] = lexIdentifier(input)
   return [token, ...lex(rest)]

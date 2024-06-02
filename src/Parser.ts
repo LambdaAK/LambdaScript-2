@@ -3,7 +3,7 @@
 
 import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, ConsOperatorType, DisjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, ConsLevel, DisjunctionLevel, DivideNode, ExprLevel, FactorNode, MinusNode, NumberNode, PatL1, PatL2, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, ConsLevel, DisjunctionLevel, DivideNode, ExprLevel, FactorNode, MinusNode, NumberNode, PatL1, PatL2, PlusNode, RelLevel, StringNode, TermNode, TimesNode, TypeL1, TypeL2 } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -737,3 +737,98 @@ const FunctionParser: Parser<ExprLevel> = (input: Token[]): Maybe<[ExprLevel, To
 }
 
 export const exprParser: Parser<ExprLevel> = combineParsers([FunctionParser, consParser])
+
+
+
+
+const unitTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'UnitTypeToken') return { type: 'None' }
+  return some([{
+    type: 'UnitType'
+  }, input.slice(1)])
+}
+
+const boolTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'BoolTypeToken') return { type: 'None' }
+  return some([{
+    type: 'BoolType'
+  }, input.slice(1)])
+}
+
+const stringTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'StringTypeToken') return { type: 'None' }
+  return some([{
+    type: 'StringType'
+  }, input.slice(1)])
+}
+
+const intTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'IntTypeToken') return { type: 'None' }
+  return some([{
+    type: 'IntType'
+  }, input.slice(1)])
+}
+
+const parenTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'LParen') return { type: 'None' }
+
+  let rest = input.slice(1)
+  const result: Maybe<[TypeL2, Token[]]> = typeL2Parser(rest)
+  if (result.type === 'None') {
+    return { type: 'None' }
+  }
+
+  const node = result.value[0]
+  rest = result.value[1]
+
+  if (rest.length === 0 || rest[0].type !== 'RParen') {
+    return { type: 'None' }
+  }
+
+  const parenNode: TypeL1 = {
+    type: 'ParenType',
+    t: node
+  }
+
+  return some([parenNode, rest.slice(1) /* Remove the RParen */])
+
+}
+
+export const typeL1Parser = combineParsers([unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser])
+
+const functionTypeParser: Parser<TypeL2> = (input: Token[]): Maybe<[TypeL2, Token[]]> => {
+  // pl1 -> pl2
+  // parse a TypeL1
+  const result1 = typeL1Parser(input)
+  if (result1.type === 'None') {
+    return none()
+  }
+  const [left, rest] = result1.value
+  // the next token should be an arrow
+  if (rest.length === 0) {
+    return none()
+  }
+  if (rest[0].type !== 'RightArrow') {
+    return none()
+  }
+  // parse a TypeL2
+  const result2 = typeL2Parser(rest.slice(1))
+  if (result2.type === 'None') {
+    return none()
+  }
+  const [right, rest2] = result2.value
+  // make a FunctionType
+  const functionType: TypeL2 = {
+    type: 'FunctionType',
+    left: left,
+    right: right
+  }
+  return some([functionType, rest2])
+}
+
+export const typeL2Parser = combineParsers([functionTypeParser, typeL1Parser])

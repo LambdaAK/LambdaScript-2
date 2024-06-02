@@ -1,13 +1,13 @@
 import { Maybe, none, some } from "./maybe"
 import { lex } from "./Lexer"
-import { appParser, arithParser, conjunctionParser, consParser, disjunctionParser, exprParser, factorParser, patL1Parser, patL2Parser, relParser, termParser } from "./Parser"
+import { appParser, arithParser, conjunctionParser, consParser, disjunctionParser, exprParser, factorParser, patL1Parser, patL2Parser, relParser, termParser, typeL1Parser, typeL2Parser } from "./Parser"
 import { ArithNode, stringOfNode } from "./AST"
 
-const s: string = "fn x -> fn y -> x + y"
+const s: string = "(String -> Int) -> Bool"
 
 const tokens = lex(s)
 
-const nodeMaybe = exprParser(tokens)
+const nodeMaybe = typeL2Parser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')

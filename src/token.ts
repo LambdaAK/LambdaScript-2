@@ -39,6 +39,18 @@ type NilToken = {
 type UnitToken = {
   type: 'UnitToken'
 }
+type BoolTypeToken = {
+  type: 'BoolTypeToken'
+}
+type StringTypeToken = {
+  type: 'StringTypeToken'
+}
+type IntTypeToken = {
+  type: 'IntTypeToken'
+}
+type UnitTypeToken = {
+  type: 'UnitTypeToken'
+}
 
 export enum RelationalOperatorType {
   LessThan = '<',
@@ -95,3 +107,4 @@ type Wildcard = {
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
+  | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken
