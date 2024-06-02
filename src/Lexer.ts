@@ -116,6 +116,14 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'NilToken' }, ...lex(input.slice(2))]
   }
 
+  if (input.startsWith("_")) {
+    return [{ type: 'Wildcard' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("()")) {
+    return [{ type: 'UnitToken' }, ...lex(input.slice(2))]
+  }
+
   const [token, rest] = lexIdentifier(input)
   return [token, ...lex(rest)]
 

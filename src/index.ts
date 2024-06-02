@@ -1,21 +1,21 @@
 import { Maybe, none, some } from "./maybe"
 import { lex } from "./Lexer"
-import { appParser, arithParser, conjunctionParser, consParser, disjunctionParser, factorParser, relParser, termParser } from "./Parser"
+import { appParser, arithParser, conjunctionParser, consParser, disjunctionParser, factorParser, patL1Parser, patL2Parser, relParser, termParser } from "./Parser"
 import { ArithNode, stringOfNode } from "./AST"
 
-const s: string = "1 :: 2 :: 3 :: 4 :: 5 :: []"
+const s: string = "1111"
 
 const tokens = lex(s)
 
-const nodeMaybe = consParser(tokens)
+const nodeMaybe = patL2Parser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')
 }
 else {
   const node = nodeMaybe.value[0]
-  //console.dir(node, { depth: null })
-  console.log(stringOfNode(node))
+  console.dir(node, { depth: null })
+  //console.log(stringOfNode(node))
 }
 
 export const lexAndParse = (s: string): Maybe<ArithNode> => {

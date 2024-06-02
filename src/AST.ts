@@ -1,5 +1,74 @@
 import { RelationalOperatorType } from "./token"
 
+/*
+(** pat represents a pattern *)
+type pat =
+  | ConsPat of sub_pat * pat
+  | SubPat of sub_pat
+  | AppPat of sub_pat * sub_pat
+(* the left sub_pat is (what should be ) a constructor the right sub_pat is the
+   argument of the constructor *)
+
+and sub_pat =
+  | IdPat of string
+  | UnitPat
+  | VectorPat of pat list
+  | WildcardPat
+  | IntPat of int
+  | StringPat of string
+  | BoolPat of bool
+  | NilPat
+  | ConstructorPat of string
+  | Pat of pat
+  | InfixPat of string
+*/
+
+type NilPat = {
+  type: 'NilPat'
+}
+
+type BoolPat = {
+  type: 'BoolPat',
+  value: boolean
+}
+
+type StringPat = {
+  type: 'StringPat',
+  value: string
+}
+
+type IntPat = {
+  type: 'IntPat',
+  value: number
+}
+
+type WildcardPat = {
+  type: 'WildcardPat'
+}
+
+type UnitPat = {
+  type: 'UnitPat'
+}
+
+type IdPat = {
+  type: 'IdPat',
+  value: string
+}
+
+type ConsPat = {
+  type: 'ConsPat',
+  left: PatL1,
+  right: PatL2
+}
+
+type ParenPat = {
+  type: 'ParenPat',
+  node: PatL2
+}
+
+export type PatL1 = NilPat | BoolPat | StringPat | IntPat | WildcardPat | UnitPat | IdPat | ParenPat
+export type PatL2 = PatL1 | ConsPat
+
 type StringNode = {
   type: 'StringNode',
   value: string
