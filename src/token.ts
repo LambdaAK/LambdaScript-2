@@ -13,6 +13,14 @@ type RParen = {
   type: 'RParen'
 }
 
+type FnToken = {
+  type: "FnToken"
+}
+
+type RightArrowToken = {
+  type: "RightArrow"
+}
+
 type StringToken = {
   type: 'StringToken'
   value: string
@@ -86,4 +94,4 @@ type Wildcard = {
 
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
-  | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken
+  | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken

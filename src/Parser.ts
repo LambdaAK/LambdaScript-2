@@ -3,7 +3,7 @@
 
 import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, ConsOperatorType, DisjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, ConsLevel, DisjunctionLevel, DivideNode, FactorNode, MinusNode, NumberNode, PatL1, PatL2, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
+import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, ConsLevel, DisjunctionLevel, DivideNode, ExprLevel, FactorNode, MinusNode, NumberNode, PatL1, PatL2, PlusNode, RelLevel, StringNode, TermNode, TimesNode } from "./AST";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -698,4 +698,42 @@ export const consParser: Parser<ConsLevel> = (input: Token[]): Maybe<[ConsLevel,
     // since the next token is an operator, but not a cons operator, do not continue parsing
     return some([disjunction, rest])
   }
-} 
+}
+
+const FunctionParser: Parser<ExprLevel> = (input: Token[]): Maybe<[ExprLevel, Token[]]> => {
+  // the first token should be Fn
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'FnToken') return { type: 'None' }
+  const tokensAfterFn = input.slice(1)
+  // parse a PatL1
+  const resultPat = patL1Parser(tokensAfterFn)
+  if (resultPat.type === 'None') {
+    return { type: 'None' }
+  }
+  const [pat, rest] = resultPat.value
+  // the next token should be Arrow
+  if (rest.length === 0) return { type: 'None' }
+  if (rest[0].type !== 'RightArrow') return { type: 'None' }
+
+  const tokensAfterArrow = rest.slice(1)
+
+  // parse the body of the function, which is an ExprLevel
+
+  const resultBody = exprParser(tokensAfterArrow)
+
+  if (resultBody.type === 'None') {
+    return { type: 'None' }
+  }
+
+  const [body, rest2] = resultBody.value
+
+  const functionNode: ExprLevel = {
+    type: 'FunctionNode',
+    pattern: pat,
+    body: body
+  }
+
+  return some([functionNode, rest2])
+}
+
+export const exprParser: Parser<ExprLevel> = combineParsers([FunctionParser, consParser])

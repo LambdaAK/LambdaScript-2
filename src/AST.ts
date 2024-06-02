@@ -186,6 +186,14 @@ type ConsNode = {
 
 type ConsLevel = ConsNode | DisjunctionLevel
 
+type FunctionNode = {
+  type: "FunctionNode",
+  pattern: PatL2,
+  body: ExprLevel
+}
+
+type ExprLevel = FunctionNode | ConsLevel
+
 // string of node
 // put parenthesis to make the order of operations clear
 const stringOfNode = (node: ConsLevel): string => {
@@ -245,5 +253,6 @@ export {
   DisjunctionLevel,
   ConsNode,
   ConsLevel,
-  NilNode
+  NilNode,
+  ExprLevel
 }
