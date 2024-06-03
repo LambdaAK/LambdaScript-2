@@ -1,4 +1,4 @@
-import { RelationalOperatorType } from "../../token"
+import { RelationalOperatorType } from "../../lexer/token"
 import { L4Arith } from "./L4"
 
 type RelNode = {

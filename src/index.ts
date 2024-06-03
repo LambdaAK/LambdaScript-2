@@ -1,13 +1,15 @@
-import { Maybe, none, some } from "./maybe"
-import { lex } from "./Lexer"
-import { appParser, arithParser, conjunctionParser, consParser, disjunctionParser, exprParser, factorParser, patL1Parser, patL2Parser, relParser, termParser, typeL1Parser, typeL2Parser } from "./Parser"
-import { L9Expr } from "./AST/expr/L9"
+import { Maybe, none, some } from "./util/maybe"
+import { lex } from "./lexer/Lexer"
 
-const s: string = "((String -> Int) -> Bool)"
+import { L9Expr } from "./AST/expr/L9"
+import { arithParser } from "./parser/expr/L4"
+import { exprParser } from "./parser/expr/L9"
+
+const s: string = "fn x -> fn y -> x + y"
 
 const tokens = lex(s)
 
-const nodeMaybe = typeL2Parser(tokens)
+const nodeMaybe = exprParser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')
@@ -21,7 +23,7 @@ else {
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
   const tokens = lex(s)
-  const nodeMaybe = arithParser(tokens)
+  const nodeMaybe = exprParser(tokens)
   if (nodeMaybe.type === 'None') {
     return {
       type: 'None'
