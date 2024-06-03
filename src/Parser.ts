@@ -3,7 +3,17 @@
 
 import { AddOperatorType, BinaryOperatorType, ConjunctionOperatorType, ConsOperatorType, DisjunctionOperatorType, MultiplyOperatorType, RelationalOperatorType, Token } from "./token";
 import { Maybe, none, some } from "./maybe";
-import { ApplicationNode, AppNode, ArithNode, BooleanNode, ConjunctionLevel, ConsLevel, DisjunctionLevel, DivideNode, ExprLevel, FactorNode, MinusNode, NumberNode, PatL1, PatL2, PlusNode, RelLevel, StringNode, TermNode, TimesNode, TypeL1, TypeL2 } from "./AST";
+import { PatL1 } from "./AST/pat/PatL1";
+import { PatL2 } from "./AST/pat/PatL2";
+import { L1Factor } from "./AST/expr/L1";
+import { L2App } from "./AST/expr/L2";
+import { L3Term } from "./AST/expr/L3";
+import { L4Arith } from "./AST/expr/L4";
+import { L5Rel } from "./AST/expr/L5";
+import { L6Conjunction } from "./AST/expr/L6";
+import { L7Disjunction } from "./AST/expr/L7";
+import { L9Expr } from "./AST/expr/L9";
+import { L8Cons } from "./AST/expr/L8";
 
 type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
@@ -193,10 +203,10 @@ const consPatParser = (input: Token[]): Maybe<[PatL2, Token[]]> => {
 
 export const patL2Parser = combineParsers([consPatParser, patL1Parser])
 
-const numberParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+const numberParser: Parser<L1Factor> = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'NumberToken') {
-    const numberNode: NumberNode = {
+    const numberNode: L1Factor = {
       type: 'NumberNode',
       value: input[0].value
     }
@@ -208,10 +218,10 @@ const numberParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, To
   else return { type: 'None' }
 }
 
-export const stringParser: Parser<FactorNode> = (input: Token[]) => {
+export const stringParser: Parser<L1Factor> = (input: Token[]) => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'StringToken') {
-    const StringNode: StringNode = {
+    const StringNode: L1Factor = {
       type: 'StringNode',
       value: input[0].value,
     }
@@ -223,11 +233,11 @@ export const stringParser: Parser<FactorNode> = (input: Token[]) => {
   else return { type: 'None' }
 }
 
-const booleanParser: Parser<FactorNode> =
-  (input: Token[]): Maybe<[BooleanNode, Token[]]> => {
+const booleanParser: Parser<L1Factor> =
+  (input: Token[]): Maybe<[L1Factor, Token[]]> => {
     if (input.length === 0) return { type: 'None' }
     if (input[0].type === 'BooleanToken') {
-      const booleanNode: BooleanNode = {
+      const booleanNode: L1Factor = {
         type: 'BooleanNode',
         value: input[0].value
       }
@@ -239,11 +249,11 @@ const booleanParser: Parser<FactorNode> =
     else return { type: 'None' }
   }
 
-const identifierParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+const identifierParser: Parser<L1Factor> = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'IdentifierToken') return { type: 'None' }
 
-  const identifierNode: FactorNode = {
+  const identifierNode: L1Factor = {
     type: 'IdentifierNode',
     value: input[0].value
   }
@@ -252,23 +262,23 @@ const identifierParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode
 
 }
 
-const nilParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+const nilParser: Parser<L1Factor> = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'NilToken') return { type: 'None' }
 
-  const nilNode: FactorNode = {
+  const nilNode: L1Factor = {
     type: 'NilNode'
   }
 
   return some([nilNode, input.slice(1)])
 }
 
-const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNode, Token[]]> => {
+const parenFactorParser: Parser<L1Factor> = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'LParen') return { type: 'None' }
 
   let rest = input.slice(1)
-  const result: Maybe<[DisjunctionLevel, Token[]]> = disjunctionParser(rest)
+  const result: Maybe<[L7Disjunction, Token[]]> = disjunctionParser(rest)
   if (result.type === 'None') {
     return { type: 'None' }
   }
@@ -289,11 +299,11 @@ const parenFactorParser: Parser<FactorNode> = (input: Token[]): Maybe<[FactorNod
 
 export const factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, parenFactorParser])
 
-export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Token[]]> => {
+export const appParser: Parser<L2App> = (input: Token[]): Maybe<[L2App, Token[]]> => {
   // parse a list of factors while possible
   // then, fold them an application
   // application is left associative
-  const factors: FactorNode[] = []
+  const factors: L1Factor[] = []
   let rest: Token[] = input
   while (true) {
     const result = factorParser(rest)
@@ -306,7 +316,7 @@ export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Toke
   }
 
 
-  const combineFactorsIntoApp = (factors: FactorNode[]): AppNode => {
+  const combineFactorsIntoApp = (factors: L1Factor[]): L2App => {
 
     // a b c === (a b) c
 
@@ -318,7 +328,7 @@ export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Toke
 
     const left = combineFactorsIntoApp(allFactorsButLast)
 
-    const newApp: ApplicationNode = {
+    const newApp: L2App = {
       type: "ApplicationNode",
       left: left,
       right: right
@@ -328,19 +338,19 @@ export const appParser: Parser<AppNode> = (input: Token[]): Maybe<[AppNode, Toke
 
   }
 
-  // fold the factors into an AppNode
+  // fold the factors into an L2App
 
   if (factors.length === 0) return none()
 
-  const appNode: AppNode = combineFactorsIntoApp(factors)
+  const L2App: L2App = combineFactorsIntoApp(factors)
 
-  return some([appNode, rest])
+  return some([L2App, rest])
 
 }
 
-export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, Token[]]> => {
+export const termParser: Parser<L3Term> = (input: Token[]): Maybe<[L3Term, Token[]]> => {
   // parse a list of factors
-  const factors: AppNode[] = []
+  const factors: L2App[] = []
   const bops: BinaryOperatorType[] = []
 
   let rest = input
@@ -371,7 +381,7 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
     }
   }
 
-  const combineFactors = (factors: AppNode[], bops: BinaryOperatorType[]): TermNode => {
+  const combineFactors = (factors: L2App[], bops: BinaryOperatorType[]): L3Term => {
     // If there is only one factor, return it. It is a factor term
     if (factors.length === 1) {
       return factors[0]
@@ -386,7 +396,7 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
     const left = combineFactors(allFactorsButLast, allBopsButLast)
 
     if (lastBop === MultiplyOperatorType.Times) {
-      const timesNode: TimesNode = {
+      const timesNode: L3Term = {
         type: 'TimesNode',
         left: left,
         right: lastFactor
@@ -396,7 +406,7 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
     }
 
     if (lastBop === MultiplyOperatorType.Divide) {
-      const divideNode: DivideNode = {
+      const divideNode: L3Term = {
         type: 'DivideNode',
         left: left,
         right: lastFactor
@@ -416,9 +426,9 @@ export const termParser: Parser<TermNode> = (input: Token[]): Maybe<[TermNode, T
   }
 }
 
-export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode, Token[]]> => {
+export const arithParser: Parser<L4Arith> = (input: Token[]): Maybe<[L4Arith, Token[]]> => {
   // parse a list of terms
-  const terms: TermNode[] = []
+  const terms: L3Term[] = []
   const bops: BinaryOperatorType[] = []
 
   let rest = input
@@ -449,7 +459,7 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
     }
   }
 
-  const combineTerms = (terms: TermNode[], bops: BinaryOperatorType[]): ArithNode => {
+  const combineTerms = (terms: L3Term[], bops: BinaryOperatorType[]): L4Arith => {
     // If there is only one term, return it. It is a term arith
     if (terms.length === 1) {
       return terms[0]
@@ -464,7 +474,7 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
     const left = combineTerms(allTermsButLast, allBopsButLast)
 
     if (lastBop === AddOperatorType.Plus) {
-      const plusNode: PlusNode = {
+      const plusNode: L4Arith = {
         type: 'PlusNode',
         left: left,
         right: lastTerm
@@ -473,7 +483,7 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
     }
 
     if (lastBop === AddOperatorType.Minus) {
-      const minusNode: MinusNode = {
+      const minusNode: L4Arith = {
         type: 'MinusNode',
         left: left,
         right: lastTerm
@@ -493,9 +503,9 @@ export const arithParser: Parser<ArithNode> = (input: Token[]): Maybe<[ArithNode
 
 }
 
-export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
+export const relParser = (input: Token[]): Maybe<[L5Rel, Token[]]> => {
 
-  const ariths: ArithNode[] = []
+  const ariths: L4Arith[] = []
   const bops: RelationalOperatorType[] = []
 
   let rest = input
@@ -530,7 +540,7 @@ export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
     }
   }
 
-  const combineAriths = (ariths: ArithNode[], bops: RelationalOperatorType[]): RelLevel => {
+  const combineAriths = (ariths: L4Arith[], bops: RelationalOperatorType[]): L5Rel => {
     if (ariths.length === 1) {
       return ariths[0]
     }
@@ -543,7 +553,7 @@ export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
 
     const left = combineAriths(allArithsButLast, allBopsButLast)
 
-    const relNode: RelLevel = {
+    const relNode: L5Rel = {
       type: 'RelNode',
       left: left,
       right: lastArith,
@@ -559,8 +569,8 @@ export const relParser = (input: Token[]): Maybe<[RelLevel, Token[]]> => {
 
 }
 
-export const conjunctionParser: Parser<ConjunctionLevel> = (input: Token[]): Maybe<[ConjunctionLevel, Token[]]> => {
-  const rels: RelLevel[] = []
+export const conjunctionParser: Parser<L6Conjunction> = (input: Token[]): Maybe<[L6Conjunction, Token[]]> => {
+  const rels: L5Rel[] = []
 
   let rest = input
 
@@ -588,7 +598,7 @@ export const conjunctionParser: Parser<ConjunctionLevel> = (input: Token[]): May
     }
   }
 
-  const combineRels = (rels: RelLevel[]): ConjunctionLevel => {
+  const combineRels = (rels: L5Rel[]): L6Conjunction => {
     if (rels.length === 1) {
       return rels[0]
     }
@@ -596,9 +606,9 @@ export const conjunctionParser: Parser<ConjunctionLevel> = (input: Token[]): May
     const allRelsButLast = rels.slice(0, rels.length - 1)
     const lastRel = rels[rels.length - 1]
 
-    const left: ConjunctionLevel = combineRels(allRelsButLast)
+    const left: L6Conjunction = combineRels(allRelsButLast)
 
-    const conjunctionNode: ConjunctionLevel = {
+    const conjunctionNode: L6Conjunction = {
       type: 'ConjunctionNode',
       left: left,
       right: lastRel
@@ -612,8 +622,8 @@ export const conjunctionParser: Parser<ConjunctionLevel> = (input: Token[]): May
   return some([combineRels(rels), rest])
 }
 
-export const disjunctionParser: Parser<DisjunctionLevel> = (input: Token[]): Maybe<[DisjunctionLevel, Token[]]> => {
-  const conjunctions: ConjunctionLevel[] = []
+export const disjunctionParser: Parser<L7Disjunction> = (input: Token[]): Maybe<[L7Disjunction, Token[]]> => {
+  const conjunctions: L6Conjunction[] = []
 
   let rest = input
 
@@ -643,7 +653,7 @@ export const disjunctionParser: Parser<DisjunctionLevel> = (input: Token[]): May
     }
   }
 
-  const combineConjunctions = (conjunctions: ConjunctionLevel[]): DisjunctionLevel => {
+  const combineConjunctions = (conjunctions: L6Conjunction[]): L7Disjunction => {
     if (conjunctions.length === 1) {
       return conjunctions[0]
     }
@@ -653,7 +663,7 @@ export const disjunctionParser: Parser<DisjunctionLevel> = (input: Token[]): May
 
     const left = combineConjunctions(allConjunctionsButLast)
 
-    const disjunctionNode: DisjunctionLevel = {
+    const disjunctionNode: L7Disjunction = {
       type: 'DisjunctionNode',
       left: left,
       right: lastConjunction
@@ -667,7 +677,7 @@ export const disjunctionParser: Parser<DisjunctionLevel> = (input: Token[]): May
   return some([combineConjunctions(conjunctions), rest])
 }
 
-export const consParser: Parser<ConsLevel> = (input: Token[]): Maybe<[ConsLevel, Token[]]> => {
+export const consParser: Parser<L8Cons> = (input: Token[]): Maybe<[L8Cons, Token[]]> => {
   // parse a disjunction
   const result = disjunctionParser(input)
   if (result.type === 'None') {
@@ -680,16 +690,16 @@ export const consParser: Parser<ConsLevel> = (input: Token[]): Maybe<[ConsLevel,
   }
   if (rest[0].type === 'BopToken' && rest[0].operator === ConsOperatorType.Cons) {
     const tokensAfterCons = rest.slice(1)
-    // parse a ConsLevel and make a ConsNode
+    // parse a L8Cons and make a ConsNode
     const result2 = consParser(tokensAfterCons)
     if (result2.type === 'None') {
       return none()
     }
-    const [consLevel, rest2] = result2.value
-    const consNode: ConsLevel = {
+    const [L8Cons, rest2] = result2.value
+    const consNode: L8Cons = {
       type: 'ConsNode',
       left: disjunction,
-      right: consLevel
+      right: L8Cons
     }
 
     return some([consNode, rest2])
@@ -700,7 +710,7 @@ export const consParser: Parser<ConsLevel> = (input: Token[]): Maybe<[ConsLevel,
   }
 }
 
-const FunctionParser: Parser<ExprLevel> = (input: Token[]): Maybe<[ExprLevel, Token[]]> => {
+const FunctionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   // the first token should be Fn
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'FnToken') return { type: 'None' }
@@ -717,7 +727,7 @@ const FunctionParser: Parser<ExprLevel> = (input: Token[]): Maybe<[ExprLevel, To
 
   const tokensAfterArrow = rest.slice(1)
 
-  // parse the body of the function, which is an ExprLevel
+  // parse the body of the function, which is an L9Expr
 
   const resultBody = exprParser(tokensAfterArrow)
 
@@ -727,7 +737,7 @@ const FunctionParser: Parser<ExprLevel> = (input: Token[]): Maybe<[ExprLevel, To
 
   const [body, rest2] = resultBody.value
 
-  const functionNode: ExprLevel = {
+  const functionNode: L9Expr = {
     type: 'FunctionNode',
     pattern: pat,
     body: body
@@ -736,10 +746,7 @@ const FunctionParser: Parser<ExprLevel> = (input: Token[]): Maybe<[ExprLevel, To
   return some([functionNode, rest2])
 }
 
-export const exprParser: Parser<ExprLevel> = combineParsers([FunctionParser, consParser])
-
-
-
+export const exprParser: Parser<L9Expr> = combineParsers([FunctionParser, consParser])
 
 const unitTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
