@@ -3,34 +3,37 @@ import { Token } from "../../lexer/token"
 import { Parser, combineParsers } from "../parser"
 import { typeL1Parser } from "./TypeL1"
 
-const functionTypeParser: Parser<TypeL2> = (input: Token[]): Maybe<[TypeL2, Token[]]> => {
-  // pl1 -> pl2
-  // parse a TypeL1
-  const result1 = typeL1Parser(input)
-  if (result1.type === 'None') {
-    return none()
+const appTypeParser: Parser<TypeL2> = (input: Token[]): Maybe<[TypeL2, Token[]]> => {
+  // parse a list of TypeL1, while possible
+  const typeL1s: TypeL1[] = []
+  let rest = input
+  while (true) {
+    const result = typeL1Parser(rest)
+    if (result.type === 'None') break
+    typeL1s.push(result.value[0])
+    rest = result.value[1]
   }
-  const [left, rest] = result1.value
-  // the next token should be an arrow
-  if (rest.length === 0) {
-    return none()
+  // if we didn't parse any TypeL1, return None
+  if (typeL1s.length === 0) return none()
+  // combine the TypeL1s into an AppType using reduce
+
+  const combine = (types: TypeL1[]): TypeL2 => {
+    if (types.length === 1) return types[0]
+    const allButLast = types.slice(0, types.length - 1)
+    const last = types[types.length - 1]
+    // turn allButLast into AppType
+    const appType: TypeL2 = combine(allButLast)
+    // combine the AppType with the last
+    const finalAppType: TypeL2 = {
+      type: 'AppType',
+      left: appType,
+      right: last
+    }
+    return finalAppType
   }
-  if (rest[0].type !== 'RightArrow') {
-    return none()
-  }
-  // parse a TypeL2
-  const result2 = typeL2Parser(rest.slice(1))
-  if (result2.type === 'None') {
-    return none()
-  }
-  const [right, rest2] = result2.value
-  // make a FunctionType
-  const functionType: TypeL2 = {
-    type: 'FunctionType',
-    left: left,
-    right: right
-  }
-  return some([functionType, rest2])
+
+  return some([combine(typeL1s), rest])
+
 }
 
-export const typeL2Parser = combineParsers([functionTypeParser, typeL1Parser])
+export const typeL2Parser: Parser<TypeL2> = combineParsers([appTypeParser, typeL1Parser])

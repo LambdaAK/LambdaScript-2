@@ -17,6 +17,10 @@ type FnToken = {
   type: "FnToken"
 }
 
+type FNToken = {
+  type: "FNToken"
+}
+
 type RightArrowToken = {
   type: "RightArrow"
 }
@@ -107,4 +111,4 @@ type Wildcard = {
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
-  | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken
+  | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken

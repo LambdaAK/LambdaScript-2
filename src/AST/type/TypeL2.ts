@@ -1,22 +1,7 @@
-type UnitType = {
-  type: 'UnitType'
+type AppType = {
+  type: 'AppType',
+  left: TypeL2,
+  right: TypeL1
 }
 
-type BoolType = {
-  type: 'BoolType'
-}
-
-type StringType = {
-  type: 'StringType'
-}
-
-type IntType = {
-  type: 'IntType'
-}
-
-type ParenType = {
-  type: 'ParenType',
-  t: TypeL2
-}
-
-type TypeL1 = UnitType | BoolType | StringType | IntType | ParenType
+type TypeL2 = AppType | TypeL1

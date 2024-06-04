@@ -2,14 +2,15 @@ import { Maybe, none, some } from "./util/maybe"
 import { lex } from "./lexer/Lexer"
 
 import { L9Expr } from "./AST/expr/L9"
-import { arithParser } from "./parser/expr/L4"
 import { exprParser } from "./parser/expr/L9"
+import { typeL4Parser } from "./parser/type/TypeL4"
+import { typeL1Parser } from "./parser/type/TypeL1"
 
-const s: string = "fn x -> fn y -> x + y"
+const s: string = "a -> b -> c -> d"
 
 const tokens = lex(s)
 
-const nodeMaybe = exprParser(tokens)
+const nodeMaybe = typeL4Parser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')

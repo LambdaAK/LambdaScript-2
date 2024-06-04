@@ -1,7 +1,27 @@
-type FunctionType = {
-  type: 'FunctionType',
-  left: TypeL1,
-  right: TypeL2
+type UnitType = {
+  type: 'UnitType'
 }
 
-type TypeL2 = TypeL1 | FunctionType
+type BoolType = {
+  type: 'BoolType'
+}
+
+type StringType = {
+  type: 'StringType'
+}
+
+type IntType = {
+  type: 'IntType'
+}
+
+type ParenType = {
+  type: 'ParenType',
+  t: TypeL4
+}
+
+type TypeVar = {
+  type: 'TypeVar',
+  name: string
+}
+
+type TypeL1 = UnitType | BoolType | StringType | IntType | ParenType | TypeVar

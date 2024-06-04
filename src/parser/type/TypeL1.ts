@@ -1,7 +1,7 @@
 import { Maybe, some } from "../../util/maybe"
 import { Token } from "../../lexer/token"
 import { Parser, combineParsers } from "../parser"
-import { typeL2Parser } from "./TypeL2"
+import { typeL4Parser } from "./TypeL4"
 
 const unitTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
@@ -40,7 +40,7 @@ const parenTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]
   if (input[0].type !== 'LParen') return { type: 'None' }
 
   let rest = input.slice(1)
-  const result: Maybe<[TypeL2, Token[]]> = typeL2Parser(rest)
+  const result: Maybe<[TypeL4, Token[]]> = typeL4Parser(rest)
   if (result.type === 'None') {
     return { type: 'None' }
   }
@@ -61,4 +61,14 @@ const parenTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]
 
 }
 
-export const typeL1Parser = combineParsers([unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser])
+const typeVarParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+  if (input.length === 0) return { type: 'None' }
+  if (input[0].type !== 'IdentifierToken') return { type: 'None' }
+  return some([{
+    type: 'TypeVar',
+    name: input[0].value
+  }, input.slice(1)])
+
+}
+
+export const typeL1Parser = combineParsers([unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser, typeVarParser])

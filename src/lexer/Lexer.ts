@@ -143,6 +143,9 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'FnToken' }, ...lex(input.slice(2))]
   }
 
+  if (input.startsWith("Fn")) {
+    return [{ type: 'FNToken' }, ...lex(input.slice(2))]
+  }
 
   const [token, rest] = lexIdentifier(input)
   return [token, ...lex(rest)]
