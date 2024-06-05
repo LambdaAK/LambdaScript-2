@@ -5,9 +5,10 @@ import { L9Expr } from "./AST/expr/L9"
 import { exprParser } from "./parser/expr/L9"
 import { typeL4Parser } from "./parser/type/TypeL4"
 import { typeL1Parser } from "./parser/type/TypeL1"
-import { generate } from "./typecheck/typecheck"
+import { generate, getType, substituteTypeVars, unify } from "./typecheck/typecheck"
+import { ImmMap } from "./util/ImmMap"
 
-const s: string = ""
+const s: string = "fn x -> fn y -> fn z -> fn w -> x + y + z + w"
 
 const tokens = lex(s)
 
@@ -17,13 +18,22 @@ if (nodeMaybe.type === 'None') {
   console.log('parse error')
 }
 
+
 else {
   const node = nodeMaybe.value[0]
   console.dir(node, { depth: null })
   //console.log(stringOfNode(node))
-  const [t, equations] = generate(node, new Map())
-  console.log(t)
-  console.log(equations)
+  const [t, equations] = generate(node, new ImmMap([]))
+  console.log("Type:")
+  console.dir(t, { depth: null })
+  console.log("Equations:")
+  console.dir(equations, { depth: null })
+  console.log("Unifying...")
+  const unified = unify(equations)
+  console.log("Unified:")
+  console.dir(unified, { depth: null })
+  console.log("Substituting...")
+  console.dir(getType(t, unified), { depth: null })
 }
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
