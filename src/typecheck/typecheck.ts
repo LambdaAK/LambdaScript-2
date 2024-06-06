@@ -1,13 +1,11 @@
+import { Expr } from "../AST/expr/expr"
 import { L9Expr } from "../AST/expr/L9"
+import { Pat } from "../AST/pat/Pat"
 import { PatL2 } from "../AST/pat/PatL2"
+import { Type } from "../AST/type/Type"
 import { ImmMap } from "../util/ImmMap"
 
-type Type = TypeL4
 type TypeEquation = [Type, Type]
-
-type Expr = L9Expr
-
-type Pat = PatL2
 
 // a mapping from identifiers to types
 type StaticEnv = ImmMap<string, Type>
@@ -15,7 +13,7 @@ type StaticEnv = ImmMap<string, Type>
 let typeVarCounter = 1
 const freshTypeVar: () => Type = () => {
   const typeVar: Type = {
-    type: 'TypeVar',
+    type: 'TypeVarAST',
     name: String(typeVarCounter)
   }
   typeVarCounter++
@@ -25,47 +23,34 @@ const freshTypeVar: () => Type = () => {
 export const substituteTypeVars = (toReplace: string, replaceWith: string, type: Type): Type => {
   // replace all occurrences of toReplace with replaceWith in type
   switch (type.type) {
-    case 'TypeVar':
+    case 'TypeVarAST':
       if (type.name === toReplace) {
         return {
-          type: 'TypeVar',
+          type: 'TypeVarAST',
           name: replaceWith
         }
       }
       return type
-    case 'IntType':
+    case 'IntTypeAST':
       return type
-    case 'BoolType':
+    case 'BoolTypeAST':
       return type
-    case 'StringType':
+    case 'StringTypeAST':
       return type
-    case 'UnitType':
+    case 'UnitTypeAST':
       return type
-    case 'FunctionType':
+    case 'FunctionTypeAST':
       return {
-        type: 'FunctionType',
-        left: {
-          type: 'ParenType',
-          t: substituteTypeVars(toReplace, replaceWith, type.left)
-        },
-        right: {
-          type: 'ParenType',
-          t: substituteTypeVars(toReplace, replaceWith, type.right)
-        }
+        type: 'FunctionTypeAST',
+        left:
+          substituteTypeVars(toReplace, replaceWith, type.left),
+        right: substituteTypeVars(toReplace, replaceWith, type.right)
       }
-    case 'ParenType':
+    case 'AppTypeAST':
       return {
-        type: 'ParenType',
-        t: substituteTypeVars(toReplace, replaceWith, type.t)
-      }
-    case 'AppType':
-      return {
-        type: 'AppType',
-        left: { type: "ParenType", t: substituteTypeVars(toReplace, replaceWith, type.left) },
-        right: {
-          type: "ParenType", t: substituteTypeVars(toReplace, replaceWith, type.right)
-        }
-
+        type: 'AppTypeAST',
+        left: substituteTypeVars(toReplace, replaceWith, type.left),
+        right: substituteTypeVars(toReplace, replaceWith, type.right)
       }
     default:
       throw new Error('Unimplemented in substitute')
@@ -75,44 +60,32 @@ export const substituteTypeVars = (toReplace: string, replaceWith: string, type:
 const substituteTypes = (toReplace: Type, replaceWith: Type, type: Type): Type => {
   // replace all occurrences of toReplace with replaceWith in type
   switch (type.type) {
-    case 'TypeVar':
+    case 'TypeVarAST':
       if (type === toReplace) {
         return replaceWith
       }
       return type
-    case 'IntType':
+    case 'IntTypeAST':
       return type
-    case 'BoolType':
+    case 'BoolTypeAST':
       return type
-    case 'StringType':
+    case 'StringTypeAST':
       return type
-    case 'UnitType':
+    case 'UnitTypeAST':
       return type
-    case 'FunctionType':
+    case 'FunctionTypeAST':
       return {
-        type: 'FunctionType',
-        left: {
-          type: 'ParenType',
-          t: substituteTypes(toReplace, replaceWith, type.left)
-        },
-        right: {
-          type: 'ParenType',
-          t: substituteTypes(toReplace, replaceWith, type.right)
-        }
-      }
-    case 'ParenType':
-      return {
-        type: 'ParenType',
-        t: substituteTypes(toReplace, replaceWith, type.t)
-      }
-    case 'AppType':
-      return {
-        type: 'AppType',
-        left: { type: "ParenType", t: substituteTypes(toReplace, replaceWith, type.left) },
-        right: {
-          type: "ParenType", t: substituteTypes(toReplace, replaceWith, type.right)
-        }
+        type: 'FunctionTypeAST',
+        left: substituteTypes(toReplace, replaceWith, type.left),
+        right: substituteTypes(toReplace, replaceWith, type.right)
 
+      }
+
+    case 'AppTypeAST':
+      return {
+        type: 'AppTypeAST',
+        left: substituteTypes(toReplace, replaceWith, type.left),
+        right: substituteTypes(toReplace, replaceWith, type.right)
       }
     default:
       throw new Error('Unimplemented in substitute')
@@ -120,29 +93,26 @@ const substituteTypes = (toReplace: Type, replaceWith: Type, type: Type): Type =
 
 }
 
-
 const generatePattern = (pattern: Pat): [Type, TypeEquation[], StaticEnv] => {
   switch (pattern.type) {
-    case "BoolPat":
-      return [{ type: 'BoolType' }, [], new ImmMap([])]
-    case "IntPat":
-      return [{ type: 'IntType' }, [], new ImmMap([])]
+    case "BoolPatAST":
+      return [{ type: 'BoolTypeAST' }, [], new ImmMap([])]
+    case "IntPatAST":
+      return [{ type: 'IntTypeAST' }, [], new ImmMap([])]
     case "StringPat":
-      return [{ type: 'StringType' }, [], new ImmMap([])]
-    case "UnitPat":
-      return [{ type: 'UnitType' }, [], new ImmMap([])]
-    case "IdPat":
+      return [{ type: 'StringTypeAST' }, [], new ImmMap([])]
+    case "UnitPatAST":
+      return [{ type: 'UnitTypeAST' }, [], new ImmMap([])]
+    case "IdPatAST":
 
       let typeVar = freshTypeVar()
 
       return [typeVar, [], new ImmMap([[pattern.value, typeVar]])]
-    case "WildcardPat":
+    case "WildcardPatAST":
       return [freshTypeVar(), [], new ImmMap([])]
-    case "ParenPat":
-      return generatePattern(pattern.node)
-    case "ConsPat":
+    case "ConsPatAST":
       throw new Error('ConsPat not implemented in generatePattern')
-    case "NilPat":
+    case "NilPatAST":
       throw new Error('NilPat not implemented in generatePattern')
   }
 }
@@ -159,36 +129,36 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
   */
 
   switch (expr.type) {
-    case 'NumberNode':
-      return [{ type: 'IntType' }, []]
-    case 'StringNode':
-      return [{ type: 'StringType' }, []]
-    case 'BooleanNode':
-      return [{ type: 'BoolType' }, []]
-    case 'NilNode':
+    case 'NumberAST':
+      return [{ type: 'IntTypeAST' }, []]
+    case 'StringAST':
+      return [{ type: 'StringTypeAST' }, []]
+    case 'BooleanAST':
+      return [{ type: 'BoolTypeAST' }, []]
+    case 'NilAST':
       throw new Error('NilNode not implemented in generate')
-    case 'IdentifierNode':
+    case 'IdentifierAST':
       const type: Type | undefined = staticEnv.get(expr.value)
       if (type === undefined) {
         throw new Error(`Type equation generation failed: identifier ${expr.value} not found in static environment`)
       }
       return [type, []]
-    case 'PlusNode':
+    case 'PlusAST':
       const [leftType, leftEquations] = generate(expr.left, staticEnv)
       const [rightType, rightEquations] = generate(expr.right, staticEnv)
 
 
       return [
-        { type: 'IntType' },
+        { type: 'IntTypeAST' },
         [
-          [leftType, { type: 'IntType' }],
-          [rightType, { type: 'IntType' }],
+          [leftType, { type: 'IntTypeAST' }],
+          [rightType, { type: 'IntTypeAST' }],
           ...leftEquations,
           ...rightEquations
         ]
       ]
 
-    case 'FunctionNode':
+    case 'FunctionAST':
 
       const [inputType, inputEquations, newBindings] = generatePattern(expr.pattern)
 
@@ -203,20 +173,13 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
       */
 
       const t: Type = {
-        type: 'FunctionType',
-        left: {
-          type: "ParenType",
-          t: inputType
-        },
-        right: {
-          type: "ParenType",
-          t: outputType
-        }
+        type: 'FunctionTypeAST',
+        left: inputType,
+        right: outputType
       }
 
       return [t, [...inputEquations, ...outputEquations]]
 
-      throw new Error('FunctionNode not implemented in generate')
     default:
       throw new Error('Unimplemented in generate')
   }
@@ -231,14 +194,14 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
 
   if (t1.type === t2.type) {
     // check if they're both base types
-    if (t1.type === 'IntType' || t1.type === 'BoolType' || t1.type === 'StringType' || t1.type === 'UnitType') {
+    if (t1.type === 'IntTypeAST' || t1.type === 'BoolTypeAST' || t1.type === 'StringTypeAST' || t1.type === 'UnitTypeAST') {
       return unify(rest)
     } ``
   }
 
   // if they are both type variables, substitute one for the other
 
-  if (t1.type === 'TypeVar' && t2.type === 'TypeVar') {
+  if (t1.type === 'TypeVarAST' && t2.type === 'TypeVarAST') {
     const subst = new ImmMap([[t1, t2]])
     // replace t1 with t2 in the rest of the equations
     const newRest: TypeEquation[] = rest.map(([t, tt]) => [substituteTypeVars(t1.name, t2.name, t), substituteTypeVars(t1.name, t2.name, tt)])
@@ -246,7 +209,7 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
     return [[t1, t2], ...unify(newRest)]
   }
 
-  if (t1.type === 'TypeVar') {
+  if (t1.type === 'TypeVarAST') {
     // t1 is a type variable
     // replace t1 everywhere with t2
     // replace t1 with t2 in the rest of the equations
@@ -255,7 +218,7 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
     return [[t1, t2], ...unify(newRest)]
   }
 
-  if (t2.type === 'TypeVar') {
+  if (t2.type === 'TypeVarAST') {
     // t2 is a type variable
     // replace t2 everywhere with t1
     // replace t2 with t1 in the rest of the equations
@@ -266,7 +229,7 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
 
   // if they are both function types, unify the left and right types
 
-  if (t1.type === 'FunctionType' && t2.type === 'FunctionType') {
+  if (t1.type === 'FunctionTypeAST' && t2.type === 'FunctionTypeAST') {
     const [left1, right1] = [t1.left, t1.right]
     const [left2, right2] = [t2.left, t2.right]
     const newEquations: TypeEquation[] = [[left1, left2], [right1, right2]]
@@ -284,16 +247,16 @@ const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Typ
 
   for (let i = 0; i < subst.length; i++) {
     const [t1, t2] = subst[i]
-    if (t1.type === 'TypeVar' && t1.name === typeVar) {
-      if (t2.type === 'TypeVar') {
+    if (t1.type === 'TypeVarAST' && t1.name === typeVar) {
+      if (t2.type === 'TypeVarAST') {
         return getTypeOfTypeVarIfPossible(t2.name, subst)
       }
       else {
         return t2
       }
     }
-    if (t2.type === 'TypeVar' && t2.name === typeVar) {
-      if (t1.type === 'TypeVar') {
+    if (t2.type === 'TypeVarAST' && t2.name === typeVar) {
+      if (t1.type === 'TypeVarAST') {
         return getTypeOfTypeVarIfPossible(t1.name, subst)
       }
       else {
@@ -304,7 +267,7 @@ const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Typ
   }
 
   return {
-    type: 'TypeVar',
+    type: 'TypeVarAST',
     name: typeVar
   }
 
@@ -315,32 +278,21 @@ export const getType = (type: Type, staticEnv: TypeEquation[]): Type => {
 
   // recurse through t and substitute type variables with thier actual types, when possible
   switch (type.type) {
-    case 'TypeVar':
+    case 'TypeVarAST':
       return getTypeOfTypeVarIfPossible(type.name, staticEnv)
-    case 'IntType':
+    case 'IntTypeAST':
       return type
-    case 'BoolType':
+    case 'BoolTypeAST':
       return type
-    case 'StringType':
+    case 'StringTypeAST':
       return type
-    case 'UnitType':
+    case 'UnitTypeAST':
       return type
-    case 'FunctionType':
+    case 'FunctionTypeAST':
       return {
-        type: 'FunctionType',
-        left: {
-          type: 'ParenType',
-          t: getType(type.left, staticEnv)
-        },
-        right: {
-          type: 'ParenType',
-          t: getType(type.right, staticEnv)
-        }
-      }
-    case 'ParenType':
-      return {
-        type: 'ParenType',
-        t: getType(type.t, staticEnv)
+        type: 'FunctionTypeAST',
+        left: getType(type.left, staticEnv),
+        right: getType(type.right, staticEnv)
       }
 
     default:

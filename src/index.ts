@@ -9,7 +9,7 @@ import { generate, getType, substituteTypeVars, unify } from "./typecheck/typech
 import { ImmMap } from "./util/ImmMap"
 import { condenseExpr } from "./AST/expr/condenseExpr"
 
-const s: string = "a (b c)"
+const s: string = "fn x -> fn y -> fn z -> fn w -> w + x"
 
 const tokens = lex(s)
 
@@ -20,29 +20,25 @@ if (nodeMaybe.type === 'None') {
   while (true) { }
 }
 
-
 const ast = condenseExpr(nodeMaybe.value[0])
 
 console.dir(ast, { depth: null })
 
-/*
-else {
-  const node = nodeMaybe.value[0]
-  console.dir(node, { depth: null })
-  //console.log(stringOfNode(node))
-  const [t, equations] = generate(node, new ImmMap([]))
-  console.log("Type:")
-  console.dir(t, { depth: null })
-  console.log("Equations:")
-  console.dir(equations, { depth: null })
-  console.log("Unifying...")
-  const unified = unify(equations)
-  console.log("Unified:")
-  console.dir(unified, { depth: null })
-  console.log("Substituting...")
-  console.dir(getType(t, unified), { depth: null })
-}
-*/
+const node = nodeMaybe.value[0]
+console.dir(node, { depth: null })
+//console.log(stringOfNode(node))
+const [t, equations] = generate(ast, new ImmMap([]))
+console.log("Type:")
+console.dir(t, { depth: null })
+console.log("Equations:")
+console.dir(equations, { depth: null })
+console.log("Unifying...")
+const unified = unify(equations)
+console.log("Unified:")
+console.dir(unified, { depth: null })
+console.log("Substituting...")
+console.dir(getType(t, unified), { depth: null })
+
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
   const tokens = lex(s)
