@@ -7,8 +7,9 @@ import { typeL4Parser } from "./parser/type/TypeL4"
 import { typeL1Parser } from "./parser/type/TypeL1"
 import { generate, getType, substituteTypeVars, unify } from "./typecheck/typecheck"
 import { ImmMap } from "./util/ImmMap"
+import { condenseExpr } from "./AST/expr/condenseExpr"
 
-const s: string = "fn x -> fn y -> fn z -> fn w -> x + y + z + w"
+const s: string = "a (b c)"
 
 const tokens = lex(s)
 
@@ -16,9 +17,15 @@ const nodeMaybe = exprParser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')
+  while (true) { }
 }
 
 
+const ast = condenseExpr(nodeMaybe.value[0])
+
+console.dir(ast, { depth: null })
+
+/*
 else {
   const node = nodeMaybe.value[0]
   console.dir(node, { depth: null })
@@ -35,6 +42,7 @@ else {
   console.log("Substituting...")
   console.dir(getType(t, unified), { depth: null })
 }
+*/
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
   const tokens = lex(s)
