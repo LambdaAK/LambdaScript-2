@@ -10,22 +10,24 @@ import { ImmMap } from "./util/ImmMap"
 import { condenseExpr } from "./AST/expr/condenseExpr"
 import { condenseType } from "./AST/type/condenseType"
 
-const s: string = "Int"
+const s: string = "fn x -> x"
 
 const tokens = lex(s)
 
-const nodeMaybe = typeL4Parser(tokens)
+const nodeMaybe = exprParser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')
   while (true) { }
 }
 
-const ast = condenseType(nodeMaybe.value[0])
+const ast = condenseExpr(nodeMaybe.value[0])
 
 console.dir(ast, { depth: null })
 
-/*
+
+console.log("\n\n\n\n\n\n\n\n")
+
 console.log(ast)
 
 const node = nodeMaybe.value[0]
@@ -42,7 +44,7 @@ console.log("Unified:")
 console.dir(unified, { depth: null })
 console.log("Substituting...")
 console.dir(getType(t, unified), { depth: null })
-*/
+
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
   const tokens = lex(s)

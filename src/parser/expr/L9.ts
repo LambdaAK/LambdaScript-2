@@ -4,6 +4,63 @@ import { Token } from "../../lexer/token"
 import { Parser, combineParsers } from "../parser"
 import { patL1Parser } from "../pat/PatL1"
 import { consParser } from "./L8"
+import { typeL4Parser } from "../type/TypeL4"
+import { PatL1 } from "../../AST/pat/PatL1"
+
+const parseInputPatWithoutTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
+  // parse the pattern
+  const patResult = patL1Parser(input)
+  if (patResult.type === 'None') return none()
+  const [pat, rest] = patResult.value
+  return some([pat, none(), rest])
+}
+
+const parseInputPatWithTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
+  // if the first token is not a paren, return none
+  if (input.length === 0) return none()
+  if (input[0].type !== 'LParen') return none()
+  const tokensAfterLParen = input.slice(1)
+  // parse the pattern
+  const patResult = patL1Parser(tokensAfterLParen)
+
+  if (patResult.type === 'None') return none()
+
+  const [pat, rest] = patResult.value
+
+  // the next token should be a colon
+
+  if (rest.length === 0) return none()
+
+  if (rest[0].type !== 'ColonToken') return none()
+
+  const tokensAfterColon = rest.slice(1)
+
+  // parse the type annotation, which is a typeL4
+
+  const typeResult = typeL4Parser(tokensAfterColon)
+
+  if (typeResult.type === 'None') return none()
+
+  const [typeAnnotation, rest2] = typeResult.value
+
+  // the next token should be LParen
+
+  if (rest2.length === 0) return none()
+
+  if (rest2[0].type !== 'RParen') return none()
+
+  const rest3 = rest2.slice(1)
+
+  return some([pat, some(typeAnnotation), rest3])
+}
+
+const parseInputPatAndTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
+  const result1 = parseInputPatWithoutTypeAnnotation(input)
+  if (result1.type === 'Some') return result1
+  const result2 = parseInputPatWithTypeAnnotation(input)
+  return result2
+}
+
 
 const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   // the first token should be Fn
@@ -11,11 +68,11 @@ const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]
   if (input[0].type !== 'FnToken') return { type: 'None' }
   const tokensAfterFn = input.slice(1)
   // parse a PatL1
-  const resultPat = patL1Parser(tokensAfterFn)
+  const resultPat = parseInputPatAndTypeAnnotation(tokensAfterFn)
   if (resultPat.type === 'None') {
     return { type: 'None' }
   }
-  const [pat, rest] = resultPat.value
+  const [pat, typeAnnotation, rest] = resultPat.value
   // the next token should be Arrow
   if (rest.length === 0) return { type: 'None' }
   if (rest[0].type !== 'RightArrow') return { type: 'None' }
@@ -36,7 +93,7 @@ const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]
     type: 'FunctionNode',
     pattern: pat,
     body: body,
-    typeAnnotation: none()
+    typeAnnotation: typeAnnotation
   }
 
   return some([functionNode, rest2])

@@ -119,6 +119,10 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'BopToken', operator: ConsOperatorType.Cons }, ...lex(input.slice(2))]
   }
 
+  if (input.startsWith(":")) {
+    return [{ type: 'ColonToken' }, ...lex(input.slice(1))]
+  }
+
   if (input.startsWith("True")) {
     return [{ type: 'BooleanToken', value: true }, ...lex(input.slice(4))]
   }

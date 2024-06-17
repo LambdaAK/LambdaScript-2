@@ -76,6 +76,10 @@ type ElseToken = {
   type: 'ElseToken'
 }
 
+type ColonToken = {
+  type: 'ColonToken'
+}
+
 export enum RelationalOperatorType {
   LessThan = '<',
   GreaterThan = '>',
@@ -134,4 +138,4 @@ export type Token = LAngle | Rangle | StringToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
   | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken
   | IfToken | ThenToken | ElseToken
-  | LBracket | RBracket
+  | LBracket | RBracket | ColonToken
