@@ -56,6 +56,18 @@ type UnitTypeToken = {
   type: 'UnitTypeToken'
 }
 
+type IfToken = {
+  type: 'IfToken'
+}
+
+type ThenToken = {
+  type: 'ThenToken'
+}
+
+type ElseToken = {
+  type: 'ElseToken'
+}
+
 export enum RelationalOperatorType {
   LessThan = '<',
   GreaterThan = '>',
@@ -112,3 +124,4 @@ export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
   | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken
+  | IfToken | ThenToken | ElseToken

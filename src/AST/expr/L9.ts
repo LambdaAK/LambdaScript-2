@@ -7,4 +7,11 @@ type FunctionNode = {
   body: L9Expr
 }
 
-export type L9Expr = FunctionNode | L8Cons
+type IfNode = {
+  type : "IfNode",
+  condition: L9Expr,
+  thenBranch: L9Expr,
+  elseBranch: L9Expr
+}
+
+export type L9Expr = FunctionNode | IfNode | L8Cons

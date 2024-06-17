@@ -86,7 +86,12 @@ type FunctionAST = {
   body: Expr
 }
 
-
+type IfAST = {
+  type: "IfAST",
+  condition: Expr,
+  thenBranch: Expr,
+  elseBranch: Expr
+}
 
 export type Expr = StringAST
   | NumberAST
@@ -103,4 +108,5 @@ export type Expr = StringAST
   | DisjunctionAST
   | ConsAST
   | FunctionAST
+  | IfAST
 

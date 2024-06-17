@@ -9,7 +9,7 @@ import { generate, getType, substituteTypeVars, unify } from "./typecheck/typech
 import { ImmMap } from "./util/ImmMap"
 import { condenseExpr } from "./AST/expr/condenseExpr"
 
-const s: string = "fn x -> fn y -> fn z -> fn w -> w + x"
+const s: string = "if True then 1 else 2"
 
 const tokens = lex(s)
 

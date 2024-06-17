@@ -105,6 +105,14 @@ export const condenseExpr = (expr: L9Expr): Expr => {
         body: condenseExpr(expr.body)
       }
 
+    case "IfNode":
+      return {
+        type: "IfAST",
+        condition: condenseExpr(expr.condition),
+        thenBranch: condenseExpr(expr.thenBranch),
+        elseBranch: condenseExpr(expr.elseBranch)
+      }
+
     case "ParenFactorNode":
       return condenseExpr(expr.node)
   }

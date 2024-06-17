@@ -143,8 +143,20 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'FnToken' }, ...lex(input.slice(2))]
   }
 
-  if (input.startsWith("Fn")) {
+  if (input.startsWith("tfn")) {
     return [{ type: 'FNToken' }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith("if")) {
+    return [{ type: 'IfToken' }, ...lex(input.slice(2))]
+  }
+
+  if (input.startsWith("then")) {
+    return [{ type: 'ThenToken' }, ...lex(input.slice(4))]
+  }
+
+  if (input.startsWith("else")) {
+    return [{ type: 'ElseToken' }, ...lex(input.slice(4))]
   }
 
   const [token, rest] = lexIdentifier(input)

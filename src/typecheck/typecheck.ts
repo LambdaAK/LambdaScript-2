@@ -52,6 +52,7 @@ export const substituteTypeVars = (toReplace: string, replaceWith: string, type:
         left: substituteTypeVars(toReplace, replaceWith, type.left),
         right: substituteTypeVars(toReplace, replaceWith, type.right)
       }
+
     default:
       throw new Error('Unimplemented in substitute')
   }
@@ -179,6 +180,23 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
       }
 
       return [t, [...inputEquations, ...outputEquations]]
+
+
+    case 'IfAST':
+      const [conditionType, conditionEquations] = generate(expr.condition, staticEnv)
+      const [thenType, thenEquations] = generate(expr.thenBranch, staticEnv)
+      const [elseType, elseEquations] = generate(expr.elseBranch, staticEnv)
+
+      return [
+        thenType,
+        [
+          [conditionType, { type: 'BoolTypeAST' }],
+          [thenType, elseType],
+          ...conditionEquations,
+          ...thenEquations,
+          ...elseEquations
+        ]
+      ]
 
     default:
       throw new Error('Unimplemented in generate')
