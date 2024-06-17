@@ -52,6 +52,12 @@ export const condenseType = (type: TypeL4): Type => {
         output: condenseType(type.output)
       }
 
+    case 'ListType':
+      return {
+        type: 'ListTypeAST',
+        t: condenseType(type.t)
+      }
+
 
   }
 }

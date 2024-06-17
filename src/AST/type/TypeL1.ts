@@ -19,9 +19,14 @@ type ParenType = {
   t: TypeL4
 }
 
+type ListType = {
+  type: 'ListType',
+  t: TypeL4
+}
+
 type TypeVar = {
   type: 'TypeVar',
   name: string
 }
 
-type TypeL1 = UnitType | BoolType | StringType | IntType | ParenType | TypeVar
+type TypeL1 = UnitType | BoolType | StringType | IntType | ParenType | TypeVar | ListType

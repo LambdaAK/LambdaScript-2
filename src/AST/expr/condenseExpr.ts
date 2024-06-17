@@ -1,4 +1,6 @@
+import { none, some } from "../../util/maybe";
 import { condensePat } from "../pat/condensePat";
+import { condenseType } from "../type/condenseType";
 import { Expr } from "./expr";
 import { L9Expr } from "./L9";
 
@@ -102,7 +104,8 @@ export const condenseExpr = (expr: L9Expr): Expr => {
       return {
         type: "FunctionAST",
         pattern: condensePat(expr.pattern),
-        body: condenseExpr(expr.body)
+        body: condenseExpr(expr.body),
+        typeAnnotation: expr.typeAnnotation.type == 'None' ? none() : some(condenseType(expr.typeAnnotation.value))
       }
 
     case "IfNode":

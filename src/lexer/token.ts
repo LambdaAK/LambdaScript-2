@@ -13,6 +13,14 @@ type RParen = {
   type: 'RParen'
 }
 
+type LBracket = {
+  type: 'LBracket'
+}
+
+type RBracket = {
+  type: 'RBracket'
+}
+
 type FnToken = {
   type: "FnToken"
 }
@@ -99,6 +107,7 @@ export enum ConsOperatorType {
   Cons = '::'
 }
 
+
 export type BinaryOperatorType =
   | RelationalOperatorType
   | AddOperatorType
@@ -125,3 +134,4 @@ export type Token = LAngle | Rangle | StringToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
   | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken
   | IfToken | ThenToken | ElseToken
+  | LBracket | RBracket

@@ -131,6 +131,14 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'NilToken' }, ...lex(input.slice(2))]
   }
 
+  if (input.startsWith("[")) {
+    return [{ type: 'LBracket' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("]")) {
+    return [{ type: 'RBracket' }, ...lex(input.slice(1))]
+  }
+
   if (input.startsWith("_")) {
     return [{ type: 'Wildcard' }, ...lex(input.slice(1))]
   }

@@ -37,6 +37,11 @@ type PolymorphicTypeAST = {
   output: Type
 }
 
+type ListTypeAST = {
+  type: 'ListTypeAST',
+  t: Type
+}
+
 export type Type = UnitTypeAST
   | BoolTypeAST
   | StringTypeAST
@@ -45,4 +50,5 @@ export type Type = UnitTypeAST
   | AppTypeAST
   | FunctionTypeAST
   | PolymorphicTypeAST
+  | ListTypeAST
 

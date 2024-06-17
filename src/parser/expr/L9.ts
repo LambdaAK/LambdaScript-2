@@ -35,7 +35,8 @@ const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]
   const functionNode: L9Expr = {
     type: 'FunctionNode',
     pattern: pat,
-    body: body
+    body: body,
+    typeAnnotation: none()
   }
 
   return some([functionNode, rest2])

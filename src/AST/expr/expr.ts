@@ -1,5 +1,7 @@
 import { RelationalOperatorType } from "../../lexer/token"
+import { Maybe } from "../../util/maybe"
 import { Pat } from "../pat/Pat"
+import { Type } from "../type/Type"
 
 type StringAST = {
   type: 'StringAST',
@@ -83,7 +85,8 @@ type ConsAST = {
 type FunctionAST = {
   type: "FunctionAST",
   pattern: Pat,
-  body: Expr
+  body: Expr,
+  typeAnnotation: Maybe<Type>
 }
 
 type IfAST = {
