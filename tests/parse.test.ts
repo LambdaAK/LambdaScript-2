@@ -48,7 +48,6 @@ const testCases: TestCase[] = [
     }
   },
 
-
 ]
 
 testCases.forEach(({ input, expected }) => {

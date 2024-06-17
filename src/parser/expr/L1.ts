@@ -4,6 +4,7 @@ import { Maybe, some } from "../../util/maybe"
 import { Token } from "../../lexer/token"
 import { Parser, combineParsers } from "../parser"
 import { disjunctionParser } from "./L7"
+import { exprParser } from "./L9"
 
 const numberParser: Parser<L1Factor> = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
@@ -80,7 +81,7 @@ const parenFactorParser: Parser<L1Factor> = (input: Token[]): Maybe<[L1Factor, T
   if (input[0].type !== 'LParen') return { type: 'None' }
 
   let rest = input.slice(1)
-  const result: Maybe<[L9Expr, Token[]]> = disjunctionParser(rest)
+  const result: Maybe<[L9Expr, Token[]]> = exprParser(rest)
   if (result.type === 'None') {
     return { type: 'None' }
   }

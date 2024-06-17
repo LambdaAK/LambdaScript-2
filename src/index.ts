@@ -9,7 +9,7 @@ import { generate, getType, substituteTypeVars, unify } from "./typecheck/typech
 import { ImmMap } from "./util/ImmMap"
 import { condenseExpr } from "./AST/expr/condenseExpr"
 
-const s: string = "if True then 1 else 2"
+const s: string = "(if True then 1 else if True then 2 else 3) + 1"
 
 const tokens = lex(s)
 
