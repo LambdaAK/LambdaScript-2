@@ -171,6 +171,18 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'ElseToken' }, ...lex(input.slice(4))]
   }
 
+  if (input.startsWith("const")) {
+    return [{ type: 'ConstToken' }, ...lex(input.slice(5))]
+  }
+
+  if (input.startsWith("var")) {
+    return [{ type: 'VarToken' }, ...lex(input.slice(3))]
+  }
+
+  if (input.startsWith("=")) {
+    return [{ type: 'EqualsToken' }, ...lex(input.slice(1))]
+  }
+
   const [token, rest] = lexIdentifier(input)
   return [token, ...lex(rest)]
 

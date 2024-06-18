@@ -133,9 +133,22 @@ type Wildcard = {
   type: 'Wildcard'
 }
 
+type Const = {
+  type: 'ConstToken'
+}
+
+type Var = {
+  type: 'VarToken'
+}
+
+type Equals = {
+  type: "EqualsToken"
+}
+
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
   | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken
   | IfToken | ThenToken | ElseToken
   | LBracket | RBracket | ColonToken
+  | Const | Var | Equals

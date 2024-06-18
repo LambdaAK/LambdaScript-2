@@ -9,23 +9,25 @@ import { generate, getType, substituteTypeVars, unify } from "./typecheck/typech
 import { ImmMap } from "./util/ImmMap"
 import { condenseExpr } from "./AST/expr/condenseExpr"
 import { condenseType } from "./AST/type/condenseType"
+import { defnParser } from "./parser/defn/defnParser"
+import { condenseDefn } from "./AST/defn/condenseDefn"
 
-const s: string = "fn x -> x"
+const s: string = "var x : Int = 5"
 
 const tokens = lex(s)
 
-const nodeMaybe = exprParser(tokens)
+const nodeMaybe = defnParser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')
   while (true) { }
 }
 
-const ast = condenseExpr(nodeMaybe.value[0])
+const ast = condenseDefn(nodeMaybe.value[0])
 
 console.dir(ast, { depth: null })
 
-
+/*
 console.log("\n\n\n\n\n\n\n\n")
 
 console.log(ast)
@@ -44,7 +46,7 @@ console.log("Unified:")
 console.dir(unified, { depth: null })
 console.log("Substituting...")
 console.dir(getType(t, unified), { depth: null })
-
+*/
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
   const tokens = lex(s)
