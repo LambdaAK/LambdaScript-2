@@ -179,7 +179,13 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
         right: outputType
       }
 
-      return [t, [...inputEquations, ...outputEquations]]
+      let standardEquations = [...inputEquations, ...outputEquations]
+
+      if (expr.typeAnnotation.type != 'None') {
+        standardEquations.push([inputType, expr.typeAnnotation.value])
+      }
+
+      return [t, standardEquations]
 
 
     case 'IfAST':
