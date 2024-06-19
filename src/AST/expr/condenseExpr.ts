@@ -1,4 +1,5 @@
 import { none, some } from "../../util/maybe";
+import { condenseDefn } from "../defn/condenseDefn";
 import { condensePat } from "../pat/condensePat";
 import { condenseType } from "../type/condenseType";
 import { Expr } from "./expr";
@@ -118,5 +119,14 @@ export const condenseExpr = (expr: L9Expr): Expr => {
 
     case "ParenFactorNode":
       return condenseExpr(expr.node)
+
+    case "BlockNode":
+      return {
+        type: "BlockAST",
+        statements: expr.statements.map((statement) => {
+          if (statement.type === "DefnNode") return condenseDefn(statement)
+          else return condenseExpr(statement)
+        })
+      }
   }
 }

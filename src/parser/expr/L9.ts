@@ -1,11 +1,13 @@
 import { L9Expr } from "../../AST/expr/L9"
 import { Maybe, none, some } from "../../util/maybe"
 import { Token } from "../../lexer/token"
-import { Parser, combineParsers } from "../parser"
+import { Parser, assertNextToken, combineParsers } from "../parser"
 import { patL1Parser } from "../pat/PatL1"
 import { consParser } from "./L8"
 import { typeL4Parser } from "../type/TypeL4"
 import { PatL1 } from "../../AST/pat/PatL1"
+import { defnParser } from "../defn/defnParser"
+import { DefnNode } from "../../AST/defn/defnL1"
 
 const parseInputPatWithoutTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
   // parse the pattern
@@ -157,4 +159,98 @@ const ifParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   return some([ifNode, rest3])
 }
 
-export const exprParser: Parser<L9Expr> = combineParsers([functionParser, ifParser, consParser])
+
+const statementParser: Parser<L9Expr | DefnNode> = (input: Token[]): Maybe<[(L9Expr | DefnNode), Token[]]> => {
+  // a statement is either a definition or an expression
+  // try to parse a definition
+  const defnResult = defnParser(input)
+  if (defnResult.type === "Some") {
+    return defnResult
+  }
+  // try to parse an expression
+  const exprResult = exprParser(input)
+  return exprResult
+}
+
+
+const blockParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
+  /*
+  {
+    statement1;
+    statement2;
+    ....
+    statementN;
+  }
+
+  statementN is an L9Expr
+  */
+
+  // the first token should be LBrace
+
+  const tokensAfterLBraceResult = assertNextToken(input, "LBrace")
+  if (tokensAfterLBraceResult.type === "None") return none()
+
+  const tokensAfterLBrace = tokensAfterLBraceResult.value
+
+  const statements: (L9Expr | DefnNode)[] = []
+  
+  let tokens: Token[] = tokensAfterLBrace
+  
+  while (true) {
+    // while we can, parse a statement
+
+    const statementResult = statementParser(tokens)
+
+    // check if it's none or some
+    
+    if (statementResult.type === "None") {
+      break
+    }
+
+    // update the list of statements and list of tokens
+
+    const [statement, rest] = statementResult.value
+
+    statements.push(statement)
+
+    tokens = rest
+
+    // the next token should be a semicolon
+
+    const tokensAfterSemiColonResult = assertNextToken(tokens, "SemiColonToken")
+
+    if (tokensAfterSemiColonResult.type === "None") {
+      return none()
+    }
+
+    tokens = tokensAfterSemiColonResult.value
+
+  }
+  
+  // verify that the last statement is not a definition
+
+  if (statements.length === 0) return none()
+  
+  const lastStatement = statements[statements.length - 1]
+
+  if (lastStatement.type == "DefnNode") return none()
+
+  // the next token should be RBrace
+
+  const tokensAfterStatementsResult = assertNextToken(tokens, "RBrace")
+
+  if (tokensAfterStatementsResult.type === "None") return none()
+
+  const tokensAfterStatements = tokensAfterStatementsResult.value
+
+  // finished
+
+  const blockNode: L9Expr = {
+    type: "BlockNode",
+    statements: statements,
+  }
+
+  return some([blockNode, tokensAfterStatements])
+}
+
+export const exprParser: Parser<L9Expr> = combineParsers([blockParser, functionParser, ifParser, consParser])

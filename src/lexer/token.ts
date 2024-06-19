@@ -80,6 +80,10 @@ type ColonToken = {
   type: 'ColonToken'
 }
 
+type SemiColonToken = {
+  type: 'SemiColonToken'
+}
+
 export enum RelationalOperatorType {
   LessThan = '<',
   GreaterThan = '>',
@@ -145,10 +149,19 @@ type Equals = {
   type: "EqualsToken"
 }
 
+type LBrace = {
+  type: 'LBrace'
+}
+
+type RBrace = {
+  type: 'RBrace'
+}
+
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
   | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken
   | IfToken | ThenToken | ElseToken
   | LBracket | RBracket | ColonToken
-  | Const | Var | Equals
+  | Const | Var | Equals | SemiColonToken
+  | LBrace | RBrace

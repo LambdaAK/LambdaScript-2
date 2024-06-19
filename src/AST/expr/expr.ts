@@ -1,5 +1,6 @@
 import { RelationalOperatorType } from "../../lexer/token"
 import { Maybe } from "../../util/maybe"
+import { DefnAST } from "../defn/defn"
 import { Pat } from "../pat/Pat"
 import { Type } from "../type/Type"
 
@@ -96,6 +97,11 @@ type IfAST = {
   elseBranch: Expr
 }
 
+type BlockAST = {
+  type: "BlockAST",
+  statements: (Expr | DefnAST)[]
+}
+
 export type Expr = StringAST
   | NumberAST
   | BooleanAST
@@ -112,4 +118,5 @@ export type Expr = StringAST
   | ConsAST
   | FunctionAST
   | IfAST
+  | BlockAST
 

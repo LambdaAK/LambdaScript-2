@@ -3,27 +3,27 @@ import { lex } from "./lexer/Lexer"
 
 import { L9Expr } from "./AST/expr/L9"
 import { exprParser } from "./parser/expr/L9"
-import { typeL4Parser } from "./parser/type/TypeL4"
-import { typeL1Parser } from "./parser/type/TypeL1"
-import { generate, getType, substituteTypeVars, unify } from "./typecheck/typecheck"
-import { ImmMap } from "./util/ImmMap"
-import { condenseExpr } from "./AST/expr/condenseExpr"
-import { condenseType } from "./AST/type/condenseType"
 import { defnParser } from "./parser/defn/defnParser"
 import { condenseDefn } from "./AST/defn/condenseDefn"
+import { condenseExpr } from "./AST/expr/condenseExpr"
 
-const s: string = "var x : Int = 5"
+const s: string = `
+{
+  print "hello world";
+  1 + 2 + 3 + 4 + 5 ;
+
+}`
 
 const tokens = lex(s)
 
-const nodeMaybe = defnParser(tokens)
+const nodeMaybe = exprParser(tokens)
 
 if (nodeMaybe.type === 'None') {
   console.log('parse error')
   while (true) { }
 }
 
-const ast = condenseDefn(nodeMaybe.value[0])
+const ast = condenseExpr(nodeMaybe.value[0])
 
 console.dir(ast, { depth: null })
 

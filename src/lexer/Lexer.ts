@@ -39,6 +39,8 @@ export const lex = (input: string): Token[] => {
   if (input.length === 0) return []
   if (input.startsWith(' ')) return lex(input.slice(1))
 
+  if (input.startsWith("\n")) return lex(input.slice(1))
+
   if (input.startsWith('(')) {
     return [{ type: 'LParen' }, ...lex(input.slice(1))]
   }
@@ -181,6 +183,18 @@ export const lex = (input: string): Token[] => {
 
   if (input.startsWith("=")) {
     return [{ type: 'EqualsToken' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith(";")) {
+    return [{ type: 'SemiColonToken' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("{")) {
+    return [{ type: 'LBrace' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("}")) {
+    return [{ type: 'RBrace' }, ...lex(input.slice(1))]
   }
 
   const [token, rest] = lexIdentifier(input)

@@ -1,4 +1,5 @@
 import { Maybe } from "../../util/maybe"
+import { DefnNode } from "../defn/defnL1"
 import { PatL2 } from "../pat/PatL2"
 import { L8Cons } from "./L8"
 
@@ -16,4 +17,9 @@ type IfNode = {
   elseBranch: L9Expr
 }
 
-export type L9Expr = FunctionNode | IfNode | L8Cons
+type BlockNode = {
+  type: "BlockNode",
+  statements: (L9Expr | DefnNode)[]
+}
+
+export type L9Expr = FunctionNode | IfNode | BlockNode | L8Cons
