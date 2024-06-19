@@ -1,9 +1,11 @@
+import { DefnAST } from "../AST/defn/defn"
 import { Expr } from "../AST/expr/expr"
 import { L9Expr } from "../AST/expr/L9"
 import { Pat } from "../AST/pat/Pat"
 import { PatL2 } from "../AST/pat/PatL2"
 import { Type } from "../AST/type/Type"
 import { ImmMap } from "../util/ImmMap"
+import { Maybe } from "../util/maybe"
 
 type TypeEquation = [Type, Type]
 
@@ -18,6 +20,93 @@ const freshTypeVar: () => Type = () => {
   }
   typeVarCounter++
   return typeVar
+}
+
+export function objectsEqual(obj1: any, obj2: any): boolean {
+  // Check if both arguments are objects
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) {
+    return false;
+  }
+
+  // Get keys of both objects
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Compare the number of keys
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  // Compare the keys and their types
+  for (const key of keys1) {
+    if (!keys2.includes(key)) {
+      return false;
+    }
+
+    const type1 = typeof obj1[key];
+    const type2 = typeof obj2[key];
+
+    if (type1 !== type2) {
+      return false;
+    }
+
+    // If the value is an object, recursively compare the structures
+    if (type1 === 'object' && !objectsEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * 
+ * @param pat The pattern
+ * @param type The type to bind to `pat`
+ * @param staticEnv The current static environment
+ * @returns A new static environment with the binding(s) from `pat` to `type`
+ */
+const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
+  switch (pat.type) {
+    case "BoolPatAST":
+      return staticEnv
+    case "IntPatAST":
+      return staticEnv
+    case "StringPat":
+      return staticEnv
+    case "UnitPatAST":
+      return staticEnv
+    case "IdPatAST":
+      return staticEnv.set(pat.value, type)
+    case "WildcardPatAST":
+      return staticEnv
+    case "ConsPatAST":
+      throw new Error('ConsPat should not be provided to bindPat')
+    case "NilPatAST":
+      throw new Error('NilPat should not be provided to bindPat')
+  }
+}
+
+/**
+ * Returns a new static environment with the bindings from the definition
+ * @param defn The definition to execute
+ * @param staticEnv The static environment to execute the definition in
+ */
+const bindDefn = (defn: DefnAST, staticEnv: StaticEnv): [StaticEnv, TypeEquation[]] => {
+  const pat = defn.pat
+  const type: Maybe<Type> = defn.typeAnnotation
+  const body = defn.body
+
+  // get the type and equations for body
+  let [bodyType, equations] = generate(body, staticEnv)
+
+  const generalizedType = generalize(equations, staticEnv, bodyType)
+
+  // bind the pattern to the type of the body
+
+  const newStaticEnv = bindPat(pat, generalizedType, staticEnv)
+
+  return [newStaticEnv, equations]
 }
 
 export const substituteTypeVars = (toReplace: string, replaceWith: string, type: Type): Type => {
@@ -204,6 +293,50 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
         ]
       ]
 
+    case 'BlockAST':
+      // we have a sequence of statements
+      // the type of the block is the type of the last statement
+      // generate type equations for each statement, adding the new bindings to the static environment when it's a definition
+
+      const equations: TypeEquation[] = []
+
+      for (let i = 0; i < expr.statements.length - 1; i++) {
+        const statement: Expr | DefnAST = expr.statements[i]
+        
+        // if it's an expression, we can ignore it
+        if (statement.type != "DefnAST") continue
+
+        const [newStaticEnv, newEquations] = bindDefn(statement, staticEnv)
+
+        equations.push(...newEquations)
+
+        staticEnv = newStaticEnv
+
+      }
+
+      // the type of the block is the type of the last statement
+
+      const lastStatement = expr.statements[expr.statements.length - 1]
+      if (lastStatement.type === 'DefnAST') throw new Error('DefnAST should not be the last statement in a block')
+      const [lastType, lastEquations] = generate(lastStatement, staticEnv)
+
+      return [lastType, [...equations, ...lastEquations]]
+    
+    case 'ApplicationAST':
+      const left = expr.left
+      const right = expr.right
+
+      // generate the type equations for the left and right sides of the application
+
+      const [lt, le] = generate(left, staticEnv)
+      const [rt, re] = generate(right, staticEnv)
+
+      const ot = freshTypeVar()
+
+      // it must hold that lt = rt -> ot
+
+      return [ot, [[lt, { type: 'FunctionTypeAST', left: rt, right: ot }], ...le, ...re]]
+
     default:
       throw new Error('Unimplemented in generate')
   }
@@ -323,5 +456,154 @@ export const getType = (type: Type, staticEnv: TypeEquation[]): Type => {
       throw new Error('Unimplemented in getType')
   }
 
+}
 
+const getTypeVariables = (type: Type): Type[] => {
+  switch (type.type) {
+    case 'TypeVarAST':
+      return [type]
+    case 'IntTypeAST':
+      return []
+    case 'BoolTypeAST':
+      return []
+    case 'StringTypeAST':
+      return []
+    case 'UnitTypeAST':
+      return []
+    case 'FunctionTypeAST':
+      return [...getTypeVariables(type.left), ...getTypeVariables(type.right)]
+    case 'AppTypeAST':
+      return [...getTypeVariables(type.left), ...getTypeVariables(type.right)]
+    case "ListTypeAST":
+      return getTypeVariables(type.t)
+    default:
+      throw new Error('Unimplemented in getTypeVariables')
+  }
+}
+
+const flattenTypes = (types: Type[]): Type[] => {
+  if (types.length === 0) return []
+  const [t, ...rest] = types
+
+  switch (t.type) {
+    case "AppTypeAST":
+      return [...flattenTypes([t.left, t.right]), ...flattenTypes(rest)]
+    case "FunctionTypeAST":
+      return [...flattenTypes([t.left, t.right]), ...flattenTypes(rest)]
+    case "ListTypeAST":
+      return [...flattenTypes([t.t]), ...flattenTypes(rest)]
+    default:
+      return [t, ...flattenTypes(rest)]
+  }
+}
+
+const assoc = (key: Type, map: [Type, Type][]): Type => {
+  console.log("assoc")
+  console.log(key)
+  console.dir(map, {depth: null})
+  if (map.length === 0) throw new Error('Key not found in assoc')
+  const [[k, v] , ...rest] = map
+  if (objectsEqual(key, k)) return v
+  else return assoc(key, rest)
+}
+
+const replaceTypes = (replacements: [Type, Type][], type: Type): Type => {
+  switch (type.type) {
+    case "TypeVarAST":
+      const replacement: Type = assoc(type, replacements)
+      return replacement
+    case "FunctionTypeAST":
+      return {
+        type: "FunctionTypeAST",
+        left: replaceTypes(replacements, type.left),
+        right: replaceTypes(replacements, type.right)
+      }
+    case "AppTypeAST":
+      return {
+        type: "AppTypeAST",
+        left: replaceTypes(replacements, type.left),
+        right: replaceTypes(replacements, type.right)
+      }
+    case "IntTypeAST":
+      return type
+    case "BoolTypeAST":
+      return type
+    case "StringTypeAST":
+      return type
+    case "UnitTypeAST":
+      return type
+    case "ListTypeAST":
+      return {
+        type: "ListTypeAST",
+        t: replaceTypes(replacements, type.t)
+      }
+    case "PolymorphicTypeAST":
+      throw new Error('Polymorphic types should not be present in replaceTypes')
+  }
+}
+
+const deleteDuplicates = (objects: any[]): any[] => {
+  const seen = new Set()
+  return objects.filter(obj => {
+    const key = JSON.stringify(obj)
+    if (seen.has(key)) {
+      return false
+    }
+    seen.add(key)
+    return true
+  })
+
+}
+
+const abstractify = (type: Type, typeVars: Type[]): Type => {
+  // add type arguments
+  if (typeVars.length === 0) return type
+  const [t, ...rest] = typeVars
+  // t should be a typeVar
+
+  if (t.type != "TypeVarAST") throw new Error('Type variable expected in abstractify')
+
+  const wrappedWithT: Type = {
+    type: "PolymorphicTypeAST",
+    input: t.name,
+    output: type 
+  }
+
+  return abstractify(wrappedWithT, rest)
+
+}
+
+const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: Type): Type => {
+  // finish inference of the binding expression
+  const unified: TypeEquation[] = unify(equations)
+  const u1 = getType(t, unified)
+
+  const env : StaticEnv = staticEnv.map(t => getType(t, unified))
+
+  const typeVars = getTypeVariables(u1)
+
+  const envTypes = flattenTypes(staticEnv.values())
+
+  let freeVariables = typeVars.filter(t => !envTypes.includes(t))
+  
+  // make then unique
+
+  freeVariables = deleteDuplicates(freeVariables)
+
+  console.log("freevariables: ")
+  console.dir(freeVariables, {depth: null})
+
+  const replacements: [Type, Type][] = freeVariables.map(v => [v, freshTypeVar()])
+
+  console.log("replacements")
+
+  console.log(replacements)
+
+  const generalizedType = abstractify(replaceTypes(replacements, u1), replacements.map(([_, t]) => t))
+
+  console.log("Generalized Type:")
+
+  console.dir(generalizedType, {depth: null})
+
+  return generalizedType
 }

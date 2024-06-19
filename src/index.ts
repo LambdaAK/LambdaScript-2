@@ -6,12 +6,14 @@ import { exprParser } from "./parser/expr/L9"
 import { defnParser } from "./parser/defn/defnParser"
 import { condenseDefn } from "./AST/defn/condenseDefn"
 import { condenseExpr } from "./AST/expr/condenseExpr"
+import { generate, unify, getType, objectsEqual } from "./typecheck/typecheck"
+import { ImmMap } from "./util/ImmMap"
 
-const s: string = `
-{
-  const x : Int = 1 ;
-  1 + 1 ;
+const s: string = `{
+  const f = fn x -> x;
+  1 + 1;
 }`
+
 
 const tokens = lex(s)
 
@@ -26,7 +28,7 @@ const ast = condenseExpr(nodeMaybe.value[0])
 
 console.dir(ast, { depth: null })
 
-/*
+
 console.log("\n\n\n\n\n\n\n\n")
 
 console.log(ast)
@@ -45,7 +47,7 @@ console.log("Unified:")
 console.dir(unified, { depth: null })
 console.log("Substituting...")
 console.dir(getType(t, unified), { depth: null })
-*/
+
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {
   const tokens = lex(s)
