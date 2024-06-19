@@ -9,9 +9,8 @@ import { condenseExpr } from "./AST/expr/condenseExpr"
 
 const s: string = `
 {
-  print "hello world";
-  1 + 2 + 3 + 4 + 5 ;
-
+  const x : Int = 1 ;
+  1 + 1 ;
 }`
 
 const tokens = lex(s)

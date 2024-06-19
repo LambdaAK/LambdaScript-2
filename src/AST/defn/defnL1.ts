@@ -3,8 +3,7 @@ import { L9Expr } from "../expr/L9"
 import { PatL2 } from "../pat/PatL2"
 
 export enum DefnType {
-  ConstDefn,
-  VarDefn,
+  ConstDefn
 }
 
 export type DefnNode = {

@@ -20,9 +20,9 @@ const parseOptionalTypeAnnotation = (input: Token[]): Maybe<[TypeL4, Token[]]> =
 export const defnParser: Parser<DefnNode> = (input: Token[]) => {
   // check for the const or var keyword
   if (input.length === 0) return { type: 'None' }
-  if (input[0].type !== 'ConstToken' && input[0].type !== 'VarToken') return none()
+  if (input[0].type !== 'ConstToken') return none()
   
-  const defnType = input[0].type === 'ConstToken' ? DefnType.ConstDefn : DefnType.VarDefn
+  const defnType = DefnType.ConstDefn
 
   // next is the pattern
 
