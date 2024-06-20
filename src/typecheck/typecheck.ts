@@ -232,7 +232,7 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
       if (type === undefined) {
         throw new Error(`Type equation generation failed: identifier ${expr.value} not found in static environment`)
       }
-      return [type, []]
+      return [instantiate(type), []]
     case 'PlusAST':
       const [leftType, leftEquations] = generate(expr.left, staticEnv)
       const [rightType, rightEquations] = generate(expr.right, staticEnv)
@@ -432,7 +432,6 @@ const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Typ
 
 export const getType = (type: Type, staticEnv: TypeEquation[]): Type => {
 
-
   // recurse through t and substitute type variables with thier actual types, when possible
   switch (type.type) {
     case 'TypeVarAST':
@@ -451,9 +450,23 @@ export const getType = (type: Type, staticEnv: TypeEquation[]): Type => {
         left: getType(type.left, staticEnv),
         right: getType(type.right, staticEnv)
       }
-
-    default:
-      throw new Error('Unimplemented in getType')
+    case "PolymorphicTypeAST":
+      return {
+        type: "PolymorphicTypeAST",
+        input: type.input,
+        output: getType(type.output, staticEnv)
+      }
+    case 'AppTypeAST':
+      return {
+        type: 'AppTypeAST',
+        left: getType(type.left, staticEnv),
+        right: getType(type.right, staticEnv)
+      }
+    case 'ListTypeAST':
+      return {
+        type: 'ListTypeAST',
+        t: getType(type.t, staticEnv)
+      }
   }
 
 }
@@ -573,6 +586,46 @@ const abstractify = (type: Type, typeVars: Type[]): Type => {
 
 }
 
+const substituteInType = (toReplace: Type, replaceWith: Type, type: Type): Type => {
+  switch (type.type) {
+    case "TypeVarAST":
+      if (objectsEqual(type, toReplace)) return replaceWith
+      return type
+    case "FunctionTypeAST":
+      return {
+        type: "FunctionTypeAST",
+        left: substituteInType(toReplace, replaceWith, type.left),
+        right: substituteInType(toReplace, replaceWith, type.right)
+      }
+    case "AppTypeAST":
+      return {
+        type: "AppTypeAST",
+        left: substituteInType(toReplace, replaceWith, type.left),
+        right: substituteInType(toReplace, replaceWith, type.right)
+      }
+    case "IntTypeAST":
+      return type
+    case "BoolTypeAST":
+      return type
+    case "StringTypeAST":
+      return type
+    case "UnitTypeAST":
+      return type
+    case "ListTypeAST":
+      return {
+        type: "ListTypeAST",
+        t: substituteInType(toReplace, replaceWith, type.t)
+      }
+    case "PolymorphicTypeAST":
+      return {
+        type: "PolymorphicTypeAST",
+        input: type.input,
+        output: substituteInType(toReplace, replaceWith, type.output)
+      }
+  }
+
+}
+
 const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: Type): Type => {
   // finish inference of the binding expression
   const unified: TypeEquation[] = unify(equations)
@@ -607,3 +660,19 @@ const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: Type): 
 
   return generalizedType
 }
+
+const instantiate = (type: Type): Type => {
+  switch (type.type) {
+    case "PolymorphicTypeAST":
+      const input: string = type.input
+      const output: Type = type.output
+      const t = freshTypeVar()
+      const tSubbed = substituteInType({ type: "TypeVarAST", name: input }, t, output)
+      return instantiate(tSubbed)
+    
+    default:
+      return type
+  }
+}
+
+

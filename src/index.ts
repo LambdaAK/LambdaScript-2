@@ -11,7 +11,8 @@ import { ImmMap } from "./util/ImmMap"
 
 const s: string = `{
   const f = fn x -> x;
-  1 + 1;
+  const g = fn x -> x;
+  const h = fn x -> x;
 }`
 
 
