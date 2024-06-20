@@ -115,7 +115,6 @@ export enum ConsOperatorType {
   Cons = '::'
 }
 
-
 export type BinaryOperatorType =
   | RelationalOperatorType
   | AddOperatorType
@@ -138,7 +137,7 @@ type Wildcard = {
 }
 
 type Const = {
-  type: 'ConstToken'
+  type: 'ValToken'
 }
 
 type Var = {

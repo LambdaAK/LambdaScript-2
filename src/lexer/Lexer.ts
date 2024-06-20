@@ -173,8 +173,8 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'ElseToken' }, ...lex(input.slice(4))]
   }
 
-  if (input.startsWith("const")) {
-    return [{ type: 'ConstToken' }, ...lex(input.slice(5))]
+  if (input.startsWith("val")) {
+    return [{ type: 'ValToken' }, ...lex(input.slice(3))]
   }
 
   if (input.startsWith("var")) {

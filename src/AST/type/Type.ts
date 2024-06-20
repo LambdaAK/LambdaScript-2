@@ -52,3 +52,25 @@ export type Type = UnitTypeAST
   | PolymorphicTypeAST
   | ListTypeAST
 
+export const stringOfType = (type: Type): string => {
+  switch (type.type) {
+    case 'UnitTypeAST':
+      return 'Unit'
+    case 'BoolTypeAST':
+      return 'Bool'
+    case 'StringTypeAST':
+      return 'String'
+    case 'IntTypeAST':
+      return 'Int'
+    case 'TypeVarAST':
+      return type.name
+    case 'AppTypeAST':
+      return `(${stringOfType(type.left)} ${stringOfType(type.right)})`
+    case 'FunctionTypeAST':
+      return `(${stringOfType(type.left)} -> ${stringOfType(type.right)})`
+    case 'PolymorphicTypeAST':
+      return `(${type.input} -> ${stringOfType(type.output)})`
+    case 'ListTypeAST':
+      return `[${stringOfType(type.t)}]`
+  }
+}

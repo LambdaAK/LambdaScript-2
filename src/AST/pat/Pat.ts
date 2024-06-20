@@ -45,3 +45,24 @@ export type Pat = NilPatAST
   | UnitPatAST
   | IdPatAST
   | ConsPatAST
+
+export const stringOfPat = (pat: Pat): string => {
+  switch (pat.type) {
+    case "NilPatAST":
+      return "Nil"
+    case "BoolPatAST":
+      return pat.value.toString()
+    case "StringPat":
+      return pat.value
+    case "IntPatAST":
+      return pat.value.toString()
+    case "WildcardPatAST":
+      return "_"
+    case "UnitPatAST":
+      return "()"
+    case "IdPatAST":
+      return pat.value
+    case "ConsPatAST":
+      return `(${stringOfPat(pat.left)} :: ${stringOfPat(pat.right)})`
+  }
+}

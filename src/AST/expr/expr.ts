@@ -1,8 +1,8 @@
 import { RelationalOperatorType } from "../../lexer/token"
 import { Maybe } from "../../util/maybe"
-import { DefnAST } from "../defn/defn"
-import { Pat } from "../pat/Pat"
-import { Type } from "../type/Type"
+import { DefnAST, stringOfDefn } from "../defn/defn"
+import { Pat, stringOfPat } from "../pat/Pat"
+import { stringOfType, Type } from "../type/Type"
 
 type StringAST = {
   type: 'StringAST',
@@ -120,3 +120,52 @@ export type Expr = StringAST
   | IfAST
   | BlockAST
 
+export const stringOfExpr = (expr: Expr): string => {
+  switch (expr.type) {
+    case 'StringAST':
+      return expr.value
+    case 'NumberAST':
+      return expr.value.toString()
+    case 'BooleanAST':
+      return expr.value.toString()
+    case 'IdentifierAST':
+      return expr.value
+    case 'NilAST':
+      return '[]'
+    case 'ApplicationAST':
+      return `(${stringOfExpr(expr.left)} ${stringOfExpr(expr.right)})`
+    case 'TimesAST':
+      return `(${stringOfExpr(expr.left)} * ${stringOfExpr(expr.right)})`
+    case 'DivideAST':
+      return `(${stringOfExpr(expr.left)} / ${stringOfExpr(expr.right)})`
+    case 'PlusAST':
+      return `(${stringOfExpr(expr.left)} + ${stringOfExpr(expr.right)})`
+    case 'MinusAST':
+      return `(${stringOfExpr(expr.left)} - ${stringOfExpr(expr.right)})`
+    case 'RelAST':
+      return `(${stringOfExpr(expr.left)} ${expr.operator} ${stringOfExpr(expr.right)})`
+    case 'ConjunctionAST':
+      return `(${stringOfExpr(expr.left)} && ${stringOfExpr(expr.right)})`
+    case 'DisjunctionAST':
+      return `(${stringOfExpr(expr.left)} || ${stringOfExpr(expr.right)})`
+    case 'ConsAST':
+      return `(${stringOfExpr(expr.left)} :: ${stringOfExpr(expr.right)})`
+    case 'FunctionAST':
+      // fn (x : t) -> e
+      const pattern = stringOfPat(expr.pattern)
+      const body = stringOfExpr(expr.body)
+      const typeAnnotation = expr.typeAnnotation.type === 'None' ? '' : ` : ${stringOfType(expr.typeAnnotation.value)}`
+      if (typeAnnotation.length > 0) return `fn (${pattern}${typeAnnotation}) -> ${body}`
+      else return `fn ${pattern} -> ${body}`
+    case 'IfAST':
+      return `if ${stringOfExpr(expr.condition)} then ${stringOfExpr(expr.thenBranch)} else ${stringOfExpr(expr.elseBranch)}`
+    case 'BlockAST':
+      return `{\n${expr.statements.map((stmt) => {
+        if (stmt.type === 'DefnAST') {
+          return stringOfDefn(stmt)
+        } else {
+          return stringOfExpr(stmt)
+        }
+      }).join('\n')}\n}`
+  }
+}

@@ -8,11 +8,11 @@ import { condenseDefn } from "./AST/defn/condenseDefn"
 import { condenseExpr } from "./AST/expr/condenseExpr"
 import { generate, unify, getType, objectsEqual } from "./typecheck/typecheck"
 import { ImmMap } from "./util/ImmMap"
+import { stringOfExpr } from "./AST/expr/expr"
 
 const s: string = `{
-  const f = fn x -> x;
-  const g = fn x -> x;
-  const h = fn x -> x;
+  val f = fn x -> x;
+  f 100;
 }`
 
 
@@ -27,7 +27,7 @@ if (nodeMaybe.type === 'None') {
 
 const ast = condenseExpr(nodeMaybe.value[0])
 
-console.dir(ast, { depth: null })
+console.log(stringOfExpr(ast))
 
 
 console.log("\n\n\n\n\n\n\n\n")
