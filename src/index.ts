@@ -6,15 +6,12 @@ import { exprParser } from "./parser/expr/L9"
 import { defnParser } from "./parser/defn/defnParser"
 import { condenseDefn } from "./AST/defn/condenseDefn"
 import { condenseExpr } from "./AST/expr/condenseExpr"
-import { generate, unify, getType, objectsEqual } from "./typecheck/typecheck"
+import { generate, unify, getType, objectsEqual, fixType, abstractify } from "./typecheck/typecheck"
 import { ImmMap } from "./util/ImmMap"
 import { stringOfExpr } from "./AST/expr/expr"
+import { stringOfType } from "./AST/type/Type"
 
-const s: string = `{
-  val f = fn x -> x;
-  f 100;
-}`
-
+const s: string = `fn f -> fn g -> fn x -> f (g x)`
 
 const tokens = lex(s)
 
@@ -29,7 +26,6 @@ const ast = condenseExpr(nodeMaybe.value[0])
 
 console.log(stringOfExpr(ast))
 
-
 console.log("\n\n\n\n\n\n\n\n")
 
 console.log(ast)
@@ -40,14 +36,16 @@ console.dir(node, { depth: null })
 const [t, equations] = generate(ast, new ImmMap([]))
 console.log("Type:")
 console.dir(t, { depth: null })
-console.log("Equations:")
+console.log("Equations:") 
 console.dir(equations, { depth: null })
 console.log("Unifying...")
 const unified = unify(equations)
 console.log("Unified:")
 console.dir(unified, { depth: null })
+console.log(`Unsubstituted: ${stringOfType(t)}`)
 console.log("Substituting...")
-console.dir(getType(t, unified), { depth: null })
+const tt = getType(t, unified)
+console.log(stringOfType(tt))
 
 
 export const lexAndParse = (s: string): Maybe<L9Expr> => {

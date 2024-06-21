@@ -401,7 +401,7 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
 
 const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Type => {
   // if there is a substitution for typeVar, return it
-
+  // old is on the left, new is on the right
   for (let i = 0; i < subst.length; i++) {
     const [t1, t2] = subst[i]
     if (t1.type === 'TypeVarAST' && t1.name === typeVar) {
@@ -412,6 +412,7 @@ const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Typ
         return t2
       }
     }
+    /*
     if (t2.type === 'TypeVarAST' && t2.name === typeVar) {
       if (t1.type === 'TypeVarAST') {
         return getTypeOfTypeVarIfPossible(t1.name, subst)
@@ -420,6 +421,7 @@ const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Typ
         return t1
       }
     }
+    */
 
   }
 
@@ -435,7 +437,15 @@ export const getType = (type: Type, staticEnv: TypeEquation[]): Type => {
   // recurse through t and substitute type variables with thier actual types, when possible
   switch (type.type) {
     case 'TypeVarAST':
-      return getTypeOfTypeVarIfPossible(type.name, staticEnv)
+      const newType = getTypeOfTypeVarIfPossible(type.name, staticEnv)
+      // if newType is a type variable, return it
+      // Otherwise, recurse
+      if (newType.type === 'TypeVarAST') {
+        return newType
+      }
+      else {
+        return getType(newType, staticEnv)
+      }
     case 'IntTypeAST':
       return type
     case 'BoolTypeAST':
@@ -568,7 +578,7 @@ const deleteDuplicates = (objects: any[]): any[] => {
 
 }
 
-const abstractify = (type: Type, typeVars: Type[]): Type => {
+export const abstractify = (type: Type, typeVars: Type[]): Type => {
   // add type arguments
   if (typeVars.length === 0) return type
   const [t, ...rest] = typeVars
@@ -626,7 +636,7 @@ const substituteInType = (toReplace: Type, replaceWith: Type, type: Type): Type 
 
 }
 
-const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: Type): Type => {
+export const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: Type): Type => {
   // finish inference of the binding expression
   const unified: TypeEquation[] = unify(equations)
   const u1 = getType(t, unified)
@@ -675,4 +685,14 @@ const instantiate = (type: Type): Type => {
   }
 }
 
+/**
+ * Replace the type variables to be starting at 1 and in ascending order by first appearence
+ * @param type The type to fix
+ */
+export const fixType = (type: Type) => {
+  const typeVars = getTypeVariables(type)
+  const fixedTypeVars = deleteDuplicates(typeVars)
+  const replacements: [Type, Type][] = fixedTypeVars.map((v, i) => [v, { type: 'TypeVarAST', name: String(i + 1) }])
+  return replaceTypes(replacements, type)
+}
 
