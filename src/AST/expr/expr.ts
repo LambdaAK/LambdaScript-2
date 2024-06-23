@@ -28,6 +28,10 @@ type NilAST = {
   type: 'NilAST'
 }
 
+type UnitAST = {
+  type: "UnitAST"
+}
+
 type AppAST = {
   type: 'ApplicationAST',
   left: Expr,
@@ -107,6 +111,7 @@ export type Expr = StringAST
   | BooleanAST
   | IdentifierAST
   | NilAST
+  | UnitAST
   | AppAST
   | TimesAST
   | DivideAST
@@ -132,6 +137,8 @@ export const stringOfExpr = (expr: Expr): string => {
       return expr.value
     case 'NilAST':
       return '[]'
+    case 'UnitAST':
+      return '()'
     case 'ApplicationAST':
       return `(${stringOfExpr(expr.left)} ${stringOfExpr(expr.right)})`
     case 'TimesAST':

@@ -38,4 +38,4 @@ const repl = () => {
   })
 }
 
-//repl()
+repl()

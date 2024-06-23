@@ -55,6 +55,7 @@ namespace L1ExprParser {
   var booleanParser: Parser<L1Factor>
   var identifierParser: Parser<L1Factor>
   var nilParser: Parser<L1Factor>
+  var unitParser: Parser<L1Factor>
   var parenFactorParser: Parser<L1Factor>
   export var factorParser: Parser<L1Factor>
 
@@ -128,6 +129,23 @@ namespace L1ExprParser {
     return some([nilNode, input.slice(1)])
   }
 
+  unitParser = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
+    if (input.length < 2) return none()
+    // the first token should be LParen
+    // the second token should be RParen
+
+    if (input[0].type !== 'LParen') return none()
+    if (input[1].type !== 'RParen') return none()
+
+    const tokensAfterParens = input.slice(2)
+
+    const unitNode: L1Factor = {
+      type: 'UnitNode'
+    }
+
+    return some([unitNode, tokensAfterParens])
+  }
+
   parenFactorParser = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
     if (input.length === 0) return { type: 'None' }
     if (input[0].type !== 'LParen') return { type: 'None' }
@@ -152,7 +170,7 @@ namespace L1ExprParser {
 
   }
 
-  factorParser = ParserUtil.combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, parenFactorParser])
+  factorParser = ParserUtil.combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, unitParser, parenFactorParser])
 
 }
 
@@ -978,8 +996,10 @@ namespace L1PatParser {
   }
 
   unitPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
-    if (input.length === 0) return { type: 'None' }
-    if (input[0].type === 'UnitToken') {
+    if (input.length < 2) return { type: 'None' }
+    if (input[0].type !== 'LParen') return { type: 'None' }
+    if (input[1].type !== 'RParen') return { type: 'None' }
+   
       const unitNode: PatL1 = {
         type: 'UnitPat'
       }
@@ -987,8 +1007,8 @@ namespace L1PatParser {
         type: 'Some',
         value: [unitNode, input.slice(1)]
       }
-    }
-    else return { type: 'None' }
+
+   
   }
 
   idPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {

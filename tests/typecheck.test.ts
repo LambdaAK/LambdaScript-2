@@ -76,6 +76,26 @@ const arithTests1: TestCase[] =
 .flatMap(intTestModifier)
 .flatMap(intTestModifier)
 
+const unitTypeTests: TestCase[] = [
+  "()",
+  "(())",
+  "((()))",
+  "(((())))",
+  "((((()))))",
+  "(((((())))))",
+  "((((((()))))))",
+  "{();}",
+  "({({({({({();});});});});})",
+  "({({({({({(({({({({({(({({({({({();});});});});}));});});});});}));});});});});})",
+  "({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({();});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});})"
+]
+.map(input => {
+  return {
+    input,
+    expected: 'Unit'
+  }
+})
+
 const arithTests2: TestCase[] = [
   `{
     val x = 1;
@@ -280,7 +300,8 @@ const moreComplexIntTypeTests = [
     val g = if f < 10 then 1 else 0;
     g;
   }
-  `
+  `,
+  "({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(({({({({({(2);});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});}));});});});});})"
 ]
 .map(input => {
   return {
@@ -386,7 +407,7 @@ const runTest = (input: string, expected: string) => {
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1)
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests)
 
 testCases.forEach(({ input, expected }) => {
   test(input, () => {

@@ -149,10 +149,6 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'Wildcard' }, ...lex(input.slice(1))]
   }
 
-  if (input.startsWith("()")) {
-    return [{ type: 'UnitToken' }, ...lex(input.slice(2))]
-  }
-
   if (input.startsWith("fn")) {
     return [{ type: 'FnToken' }, ...lex(input.slice(2))]
   }

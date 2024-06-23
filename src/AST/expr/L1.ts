@@ -29,10 +29,15 @@ type NilNode = {
   type: 'NilNode'
 }
 
+type UnitNode = {
+  type: 'UnitNode'
+}
+
 export type L1Factor =
   | StringNode
   | NumberNode
   | BooleanNode
   | IdentifierNode
   | NilNode
+  | UnitNode
   | ParenFactorNode

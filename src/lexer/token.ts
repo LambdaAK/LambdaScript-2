@@ -48,9 +48,6 @@ type BooleanToken = {
 type NilToken = {
   type: 'NilToken'
 }
-type UnitToken = {
-  type: 'UnitToken'
-}
 type BoolTypeToken = {
   type: 'BoolTypeToken'
 }
@@ -161,7 +158,7 @@ type FatArrow = {
 
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
-  | IdentifierToken | LParen | RParen | NilToken | Wildcard | UnitToken | FnToken | RightArrowToken
+  | IdentifierToken | LParen | RParen | NilToken | Wildcard | FnToken | RightArrowToken
   | BoolTypeToken | StringTypeToken | IntTypeToken | UnitTypeToken | FNToken
   | IfToken | ThenToken | ElseToken
   | LBracket | RBracket | ColonToken

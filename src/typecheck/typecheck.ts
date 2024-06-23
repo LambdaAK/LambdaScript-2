@@ -234,6 +234,8 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
       return [{ type: 'BoolTypeAST' }, []]
     case 'NilAST':
       throw new Error('NilNode not implemented in generate')
+    case 'UnitAST':
+      return [{ type: 'UnitTypeAST' }, []]
     case 'IdentifierAST':
       const type: Type | undefined = staticEnv.get(expr.value)
       if (type === undefined) {

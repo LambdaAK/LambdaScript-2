@@ -56,6 +56,11 @@ condenseExpr = (expr: L9Expr): Expr => {
       return {
         type: "NilAST"
       }
+    
+    case "UnitNode":
+      return {
+        type: "UnitAST"
+      }
 
     case "ApplicationNode":
       return {
