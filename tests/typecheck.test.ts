@@ -49,6 +49,39 @@ const intTestModifier = (input: TestCase) => {
   ]
 }
 
+const typeTestModifier1 = (input: TestCase) => input
+
+const typeTestModifier2 = (input: TestCase) => {
+  return {
+    input: `(${input.input})`,
+    expected: input.expected
+  }
+}
+
+const typeTestModifier3 = (input: TestCase) => {
+  return {
+    input: `if True then ${input.input} else ${input.input}`,
+    expected: input.expected
+  }
+}
+
+const typeTestModifier4 = (input: TestCase) => {
+  return {
+    input: `{(${input.input});}`,
+    expected: input.expected
+  }
+}
+
+const typeTestModifiers = [
+  typeTestModifier1,
+  typeTestModifier2,
+  typeTestModifier3,
+  typeTestModifier4
+]
+
+const typeTestModifier = (input: TestCase) => typeTestModifiers.map(modifier => modifier(input))
+
+
 const arithTests1: TestCase[] = 
 [
   "1 + 1 - 1 + 2 - 3 + 4 - 5 + 6 - 7 + 8 - 9 + 10",
@@ -310,6 +343,19 @@ const moreComplexIntTypeTests = [
   }
 })
 
+const stringTypeTests: TestCase[] = [
+  `""`,
+  `"hello"`,
+  `"world"`,
+  `"a a a a a a a a ahgkleakl gaefkaj eflk aeflk aeflk jaeglkh aeglkhaeglkh aeg"`
+]
+.map(input => {
+  return {
+    input,
+    expected: 'String'
+  }
+})
+
 const functionTypeTests: TestCase[] = [
    {
     input: "x => x",
@@ -407,7 +453,7 @@ const runTest = (input: string, expected: string) => {
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests)
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests).flatMap(typeTestModifier)
 
 testCases.forEach(({ input, expected }) => {
   test(input, () => {

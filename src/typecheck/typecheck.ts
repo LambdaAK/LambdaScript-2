@@ -399,11 +399,8 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
 
   const [[t1, t2], ...rest] = equations
 
-  if (t1.type === t2.type) {
-    // check if they're both base types
-    if (t1.type === 'IntTypeAST' || t1.type === 'BoolTypeAST' || t1.type === 'StringTypeAST' || t1.type === 'UnitTypeAST') {
-      return unify(rest)
-    } ``
+  if (objectsEqual(t1, t2)) {
+    return unify(rest)
   }
 
   // if they are both type variables, substitute one for the other
@@ -450,6 +447,9 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
 }
 
 const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Type => {
+  console.log('getTypeOfTypeVarIfPossible')
+  console.log(typeVar)
+  console.log(subst)
   // if there is a substitution for typeVar, return it
   // old is on the left, new is on the right
   for (let i = 0; i < subst.length; i++) {
