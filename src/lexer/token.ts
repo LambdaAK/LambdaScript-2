@@ -155,6 +155,9 @@ type LBrace = {
 type RBrace = {
   type: 'RBrace'
 }
+type FatArrow = {
+  type: 'FatArrow'
+}
 
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
@@ -164,3 +167,4 @@ export type Token = LAngle | Rangle | StringToken
   | LBracket | RBracket | ColonToken
   | Const | Var | Equals | SemiColonToken
   | LBrace | RBrace
+  | FatArrow

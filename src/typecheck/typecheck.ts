@@ -71,6 +71,7 @@ export function objectsEqual(obj1: any, obj2: any): boolean {
  * @returns A new static environment with the binding(s) from `pat` to `type`
  */
 const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
+  console.log("binding pattern")
   switch (pat.type) {
     case "BoolPatAST":
       return staticEnv
@@ -81,7 +82,9 @@ const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
     case "UnitPatAST":
       return staticEnv
     case "IdPatAST":
-      return staticEnv.set(pat.value, type)
+      const newStaticEnv = staticEnv.set(pat.value, type)
+      console.dir(newStaticEnv, {depth: null})
+      return newStaticEnv
     case "WildcardPatAST":
       return staticEnv
     case "ConsPatAST":
@@ -598,8 +601,12 @@ const assoc = (key: Type, map: [Type, Type][]): Type => {
 const replaceTypes = (replacements: [Type, Type][], type: Type): Type => {
   switch (type.type) {
     case "TypeVarAST":
-      const replacement: Type = assoc(type, replacements)
-      return replacement
+      try {
+        const replacement: Type = assoc(type, replacements)
+        return replacement
+      } catch (e) {
+        return type
+      }
     case "FunctionTypeAST":
       return {
         type: "FunctionTypeAST",
@@ -730,6 +737,36 @@ const substituteInType = (toReplace: Type, replaceWith: Type, type: Type): Type 
 
 }
 
+/*
+and generalize (constraints : type_equations) (env : static_env)
+    (type_env : (string * c_type) list) (t : c_type) : c_type =
+  let constraints : type_equations = replace_written_types constraints in
+  let unified : substitutions = reduce_eq constraints type_env in
+  let u1 : c_type = get_type t unified in
+  let env : static_env =
+    List.map (fun (id, t) -> (id, get_type t unified)) env
+  in
+  let type_vars : c_type list = get_type_vars u1 in
+  let env_types : c_type list = env |> List.map snd |> flatten_env_types in
+  let free_vars : c_type list =
+    List.filter (fun t -> not (List.mem t env_types)) type_vars
+    |> List.sort_uniq compare
+  in
+  let variable_replacements : (c_type * c_type) list =
+    List.map (fun t -> (t, fresh_universal_type ())) free_vars
+  in
+  replace_types u1 variable_replacements
+*/
+
+const includes = (arr: any[], el: any): boolean => {
+  for (let i = 0; i < arr.length; i++) {
+    if (objectsEqual(arr[i], el)) {
+      return true
+    }
+  }
+  return false
+}
+
 export const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: Type): Type => {
   // finish inference of the binding expression
   const unified: TypeEquation[] = unify(equations)
@@ -739,15 +776,20 @@ export const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: 
 
   const typeVars = getTypeVariables(u1)
 
-  const envTypes = flattenTypes(staticEnv.values())
+  const envTypes = flattenTypes(env.values())
 
-  let freeVariables = typeVars.filter(t => !envTypes.includes(t))
+  let freeVariables = typeVars.filter(t => !includes(envTypes, t))
   
   // make then unique
 
   freeVariables = deleteDuplicates(freeVariables)
 
+  console.log("free variables: ")
+  console.dir(freeVariables, {depth: null})
+
   const replacements: [Type, Type][] = freeVariables.map(v => [v, freshTypeVar()])
+
+  //if (replacements.length === 0) return u1
 
   const generalizedType = abstractify(replaceTypes(replacements, u1), replacements.map(([_, t]) => t))
 

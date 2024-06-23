@@ -20,3 +20,25 @@ export const lexAndParseExpr = (s: string): Expr => {
   // condense the AST
   return condenseExpr(nodeMaybe.value[0])
 }
+
+// repl
+
+const repl = () => {
+  const readline = require('readline')
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+
+  const repl = (input: string) => {
+    const ast = lexAndParseExpr(input)
+    const type = typeOfExpr(ast)
+    console.log(stringOfType(fixType(generalizeTypeVars(type))))
+  }
+
+  rl.on('line', (input: string) => {
+    repl(input)
+  })
+}
+
+//repl()

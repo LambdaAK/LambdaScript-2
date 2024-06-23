@@ -181,6 +181,10 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'VarToken' }, ...lex(input.slice(3))]
   }
 
+  if (input.startsWith("=>")) {
+    return [{ type: 'FatArrow' }, ...lex(input.slice(2))]
+  }
+
   if (input.startsWith("=")) {
     return [{ type: 'EqualsToken' }, ...lex(input.slice(1))]
   }

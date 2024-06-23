@@ -65,19 +65,14 @@ const parseInputPatAndTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<Typ
 
 
 const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
-  // the first token should be Fn
-  if (input.length === 0) return { type: 'None' }
-  if (input[0].type !== 'FnToken') return { type: 'None' }
-  const tokensAfterFn = input.slice(1)
-  // parse a PatL1
-  const resultPat = parseInputPatAndTypeAnnotation(tokensAfterFn)
+  const resultPat = parseInputPatAndTypeAnnotation(input)
   if (resultPat.type === 'None') {
     return { type: 'None' }
   }
   const [pat, typeAnnotation, rest] = resultPat.value
   // the next token should be Arrow
   if (rest.length === 0) return { type: 'None' }
-  if (rest[0].type !== 'RightArrow') return { type: 'None' }
+  if (rest[0].type !== 'FatArrow') return { type: 'None' }
 
   const tokensAfterArrow = rest.slice(1)
 

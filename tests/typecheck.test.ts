@@ -250,13 +250,97 @@ const moreComplexIntTypeTests = [
   }
 })
 
+const functionTypeTests: TestCase[] = [
+   {
+    input: "x => x",
+    expected: "a . a -> a"
+   },
+   {
+    input: "x => x + 1",
+    expected: "Int -> Int"
+   },
+   {
+    input: "x => x + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10",
+    expected: "Int -> Int"
+   },
+   // multiple layers of functions
+   {
+    input: "x => y => x + y",
+    expected: "Int -> Int -> Int"
+   },
+   {
+    input: "x => y => z => x + y + z",
+    expected: "Int -> Int -> Int -> Int"
+   },
+   {
+    input: "x => y => z => a => b => c => d => e => f => g => x + y + z + a + b + c + d + e + f + g",
+    expected: "Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int"
+   },
+   {
+    input: "x => y => z => a => b => c => d => e => f => g => x + y + z + a + b + c + d + e + f + g + 1",
+    expected: "Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int"
+   },
+   {
+    input: "x => y => z => a => b => c => d => e => f => g => x + y + z + a + b + c + d + e + f + g + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10",
+    expected: "Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int"
+   },
+   {
+    input: "a => b => c => if a then b else c",
+    expected: "a . Bool -> a -> a -> a"
+   },
+   {
+    input: "(a : Int) => b => (c : Int) => if b then a else c",
+    expected: "Int -> Bool -> Int -> Int"
+   },
+    {
+      input: "(a : Int) => (b : Bool) => (c : Int) => if b then a else c",
+      expected: "Int -> Bool -> Int -> Int"
+    },
+    {
+      input: "(a : Int) => (b : Bool) => (c : Int) => if b then a else c + 1",
+      expected: "Int -> Bool -> Int -> Int"
+    },
+    {
+      input: "(a : Int) => (b : Bool) => (c : Int) => if b then a else c + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10",
+      expected: "Int -> Bool -> Int -> Int"
+    },
+    {
+      input: "(a : Int) => (b : Bool) => (c : Int) => if b then a else c + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16",
+      expected: "Int -> Bool -> Int -> Int"
+    },
+    {
+      input: "(a : Int) => (b : Bool) => (c : Int) => if b then a else c + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20",
+      expected: "Int -> Bool -> Int -> Int"
+    },
+    {
+      input: "(a : Int) => (b : Bool) => (c : Int) => if b then a else c + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30",
+      expected: "Int -> Bool -> Int -> Int"
+    },
+    {
+      input: `a => { val x = a; x; }`,
+      expected: "a . a -> a"
+    },
+    {
+      input: `a => b => { val x = a; val y = b; x + y; }`,
+      expected: "Int -> Int -> Int"
+    },
+    {
+      input: `a => b => c => { val x = a; val y = b; val z = c; x + y + z; }`,
+      expected: "Int -> Int -> Int -> Int"
+    },
+    {
+      input: `a => b => c => d => { val x = a; val y = b; val z = c; val w = d; x + y + z + w; }`,
+      expected: "Int -> Int -> Int -> Int -> Int"
+    }
+]
+
 const runTest = (input: string, expected: string) => {
   const ast = lexAndParseExpr(input)
   const type = typeOfExpr(ast)
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests)
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests)
 
 testCases.forEach(({ input, expected }) => {
   test(input, () => {
