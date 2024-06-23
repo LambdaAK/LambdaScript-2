@@ -2,18 +2,15 @@ import { isNone, Maybe, none, some } from "./util/maybe"
 import { lex } from "./lexer/Lexer"
 
 import { L9Expr } from "./AST/expr/L9"
-import { exprParser, functionParser } from "./parser/expr/L9"
-import { defnParser } from "./parser/defn/defnParser"
-import { condenseDefn } from "./AST/defn/condenseDefn"
-import { condenseExpr } from "./AST/expr/condenseExpr"
-import { generate, unify, getType, objectsEqual, fixType, abstractify, typeOfExpr, generalizeTypeVars } from "./typecheck/typecheck"
-import { ImmMap } from "./util/ImmMap"
 import { Expr, stringOfExpr } from "./AST/expr/expr"
 import { stringOfType } from "./AST/type/Type"
+import { exprParser } from "./parser/parser"
+import { fixType, generalizeTypeVars, typeOfExpr } from "./typecheck/typecheck"
+import { condenseExpr } from "./AST/condense"
 
 export const lexAndParseExpr = (s: string): Expr => {
   const tokens = lex(s)
-  const nodeMaybe = functionParser(tokens)
+  const nodeMaybe = exprParser(tokens)
   if (isNone(nodeMaybe)) {
     throw new Error(`Failed to parse expression1: ${s}`)
   }
@@ -41,4 +38,4 @@ const repl = () => {
   })
 }
 
-repl()
+//repl()

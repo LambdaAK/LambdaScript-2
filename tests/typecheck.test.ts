@@ -389,10 +389,10 @@ const runTest = (input: string, expected: string) => {
 
 const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1)
 
-arithTests1.forEach(({ input, expected }) => {
+testCases.forEach(({ input, expected }) => {
   console.log(input)
-  setTimeout(() => {
+
   test(input, () => {
     runTest(input, expected)
-  })}, 10000)
+  })
 })
