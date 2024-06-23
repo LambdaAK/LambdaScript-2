@@ -148,9 +148,17 @@ export const substituteTypeVars = (toReplace: string, replaceWith: string, type:
         left: substituteTypeVars(toReplace, replaceWith, type.left),
         right: substituteTypeVars(toReplace, replaceWith, type.right)
       }
-
-    default:
-      throw new Error('Unimplemented in substitute')
+    case 'ListTypeAST':
+      return {
+        type: 'ListTypeAST',
+        t: substituteTypeVars(toReplace, replaceWith, type.t)
+      }
+    case "PolymorphicTypeAST":
+      return {
+        type: "PolymorphicTypeAST",
+        input: type.input,
+        output: substituteTypeVars(toReplace, replaceWith, type.output)
+      }
   }
 }
 
@@ -184,8 +192,19 @@ const substituteTypes = (toReplace: Type, replaceWith: Type, type: Type): Type =
         left: substituteTypes(toReplace, replaceWith, type.left),
         right: substituteTypes(toReplace, replaceWith, type.right)
       }
-    default:
-      throw new Error('Unimplemented in substitute')
+
+    case "ListTypeAST":
+      return {
+        type: "ListTypeAST",
+        t: substituteTypes(toReplace, replaceWith, type.t)
+      }
+    case "PolymorphicTypeAST":
+      return {
+        type: "PolymorphicTypeAST",
+        input: type.input,
+        output: substituteTypes(toReplace, replaceWith, type.output)
+      }
+
   }
 
 }
@@ -233,7 +252,8 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
     case 'BooleanAST':
       return [{ type: 'BoolTypeAST' }, []]
     case 'NilAST':
-      throw new Error('NilNode not implemented in generate')
+      const typeVar = freshTypeVar()
+      return [{ type: 'ListTypeAST', t: typeVar }, []]
     case 'UnitAST':
       return [{ type: 'UnitTypeAST' }, []]
     case 'IdentifierAST':
@@ -440,6 +460,12 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
     return unify([...newEquations, ...rest])
   }
 
+  if (t1.type === "ListTypeAST" && t2.type === "ListTypeAST") {
+    const [t1t, t2t] = [t1.t, t2.t]
+    const newEquations: TypeEquation[] = [[t1t, t2t]]
+    return unify([...newEquations, ...rest])
+  }
+
   // unimplemented / not unifiable
   console.dir(t1, { depth: null })
   console.dir(t2, { depth: null })
@@ -447,9 +473,6 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
 }
 
 const getTypeOfTypeVarIfPossible = (typeVar: string, subst: TypeEquation[]): Type => {
-  console.log('getTypeOfTypeVarIfPossible')
-  console.log(typeVar)
-  console.log(subst)
   // if there is a substitution for typeVar, return it
   // old is on the left, new is on the right
   for (let i = 0; i < subst.length; i++) {

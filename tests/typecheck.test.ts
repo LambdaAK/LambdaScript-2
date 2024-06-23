@@ -356,6 +356,46 @@ const stringTypeTests: TestCase[] = [
   }
 })
 
+const listTypeTests: TestCase[] = [
+  {
+    input: "[]",
+    expected: "a . [a]"
+  },
+  {
+    input: "1 :: []",
+    expected: "[Int]"
+  },
+  {
+    input: "1 :: 2 :: []",
+    expected: "[Int]"
+  },
+  {
+    input: "1 :: 2 :: 3 :: []",
+    expected: "[Int]"
+  },
+  {
+    input: "1 :: 2 :: 3 :: 4 :: []",
+    expected: "[Int]"
+  },
+  {
+    input: "1 :: 2 :: 3 :: 4 :: 5 :: []",
+    expected: "[Int]"
+  },
+  {
+    input: "[] :: []",
+    expected: "a . [[a]]"
+  },
+  {
+    input: "([] :: []) :: []",
+    expected: "a . [[[a]]]"
+  },
+  {
+    input: "(([] :: []) :: []) :: []",
+    expected: "a . [[[[a]]]]"
+  }
+
+]
+
 const functionTypeTests: TestCase[] = [
    {
     input: "x => x",
@@ -444,6 +484,64 @@ const complexTests1: TestCase[] = [
   {
     input: `{val x : Int = 1;val y : Int -> Int = x => x + 1;y x;}`,
     expected: "Int"
+  },
+  {
+    input: `{
+      val x : Int = 1;
+      val u: Unit = ();
+      val y : Int -> Int = x => x + 1;
+      y;
+    }`,
+    expected: "Int -> Int"
+  },
+  {
+    input: `{
+      val x = {
+        val y = 1;
+        val z = 2;
+        y + z;
+      };
+      val a : Int = 3;
+      x + a;
+    }`,
+    expected: "Int"
+  },
+  {
+    input: `{
+      val f = (x : Int) => (y : Int) => x + y;
+      f 1; 
+    }`,
+    expected: "Int -> Int"
+  },
+  {
+    input: `{
+      val a = 1;
+      val b = 2;
+      val c = 3;
+      val d = 4;
+      val e = 5;
+      val f = aa => bb => cc => dd => ee => aa + bb + cc + dd + ee;
+      f a b c d e;
+    }`,
+    expected: "Int"
+  },
+  {
+    input: `{
+      val a = 1;
+      val b = 2 + a;
+      val c = 3 + a + a + a + a * 2 * b;
+      val d = {
+        val c : Unit = ();
+        5;
+      };
+      val e = {
+        val z = 5;
+        z;
+      };
+      val f = aa => bb => cc => dd => ee => aa + bb + cc + dd + ee;
+      f a b c d e;
+    }`,
+    expected: "Int"
   }
 ]
 
@@ -453,7 +551,7 @@ const runTest = (input: string, expected: string) => {
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests).flatMap(typeTestModifier)
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests, listTypeTests).flatMap(typeTestModifier)
 
 testCases.forEach(({ input, expected }) => {
   test(input, () => {
