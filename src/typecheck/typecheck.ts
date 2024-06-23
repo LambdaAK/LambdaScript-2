@@ -71,7 +71,6 @@ export function objectsEqual(obj1: any, obj2: any): boolean {
  * @returns A new static environment with the binding(s) from `pat` to `type`
  */
 const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
-  console.log("binding pattern")
   switch (pat.type) {
     case "BoolPatAST":
       return staticEnv
@@ -83,7 +82,6 @@ const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
       return staticEnv
     case "IdPatAST":
       const newStaticEnv = staticEnv.set(pat.value, type)
-      console.dir(newStaticEnv, {depth: null})
       return newStaticEnv
     case "WildcardPatAST":
       return staticEnv
@@ -108,9 +106,6 @@ const bindDefn = (defn: DefnAST, staticEnv: StaticEnv): [StaticEnv, TypeEquation
   let [bodyType, equations] = generate(body, staticEnv)
 
   const generalizedType = generalize(equations, staticEnv, bodyType)
-  
-  console.log("generalized type: ")
-  console.dir(generalizedType, {depth: null})
 
   // bind the pattern to the type of the body
 
@@ -789,9 +784,6 @@ export const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: 
 
   freeVariables = deleteDuplicates(freeVariables)
 
-  console.log("free variables: ")
-  console.dir(freeVariables, {depth: null})
-
   const replacements: [Type, Type][] = freeVariables.map(v => [v, freshTypeVar()])
 
   //if (replacements.length === 0) return u1
@@ -841,11 +833,6 @@ export const typeOfExpr = (expr: Expr): Type => {
   const [t, equations] = generate(expr, new ImmMap([]))
   // unify the equations
   const unified = unify(equations)
-  // get the type
-  console.log("type")
-  console.dir(t, {depth: null})
-  console.log("unified")
-  console.dir(unified, {depth: null})
   const tt = getType(t, unified)
   // fix the type
   return tt

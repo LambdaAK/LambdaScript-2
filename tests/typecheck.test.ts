@@ -76,7 +76,6 @@ const arithTests1: TestCase[] =
 .flatMap(intTestModifier)
 .flatMap(intTestModifier)
 
-
 const arithTests2: TestCase[] = [
   `{
     val x = 1;
@@ -390,8 +389,6 @@ const runTest = (input: string, expected: string) => {
 const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1)
 
 testCases.forEach(({ input, expected }) => {
-  console.log(input)
-
   test(input, () => {
     runTest(input, expected)
   })

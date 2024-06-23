@@ -4,13 +4,13 @@ import { lex } from "./lexer/Lexer"
 import { L9Expr } from "./AST/expr/L9"
 import { Expr, stringOfExpr } from "./AST/expr/expr"
 import { stringOfType } from "./AST/type/Type"
-import { exprParser } from "./parser/parser"
 import { fixType, generalizeTypeVars, typeOfExpr } from "./typecheck/typecheck"
 import { condenseExpr } from "./AST/condense"
+import { L9ExprParser } from "./parser/parser"
 
 export const lexAndParseExpr = (s: string): Expr => {
   const tokens = lex(s)
-  const nodeMaybe = exprParser(tokens)
+  const nodeMaybe = L9ExprParser.exprParser(tokens)
   if (isNone(nodeMaybe)) {
     throw new Error(`Failed to parse expression1: ${s}`)
   }
