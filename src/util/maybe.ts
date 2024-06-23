@@ -16,3 +16,11 @@ export const some = <T>(v: T): Maybe<T> => {
 }
 
 export const none = (): None => { return { type: 'None' } }
+
+export const isNone = <T>(m: Maybe<T>): m is None => {
+  return m.type === 'None'
+}
+
+export const isSome = <T>(m: Maybe<T>): m is Some<T> => {
+  return m.type === 'Some'
+}

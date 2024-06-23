@@ -52,6 +52,20 @@ export type Type = UnitTypeAST
   | PolymorphicTypeAST
   | ListTypeAST
 
+const stringOfTypeVar = (t: number) => {
+  // 1 should map to a, 2 to b
+  // 26 to z, 27 to aa, 28 to ab
+
+  let s = ''
+  while (t > 0) {
+    const r = t % 26
+    s = String.fromCharCode(r + 96) + s
+    t = Math.floor(t / 26)
+  }
+
+  return s
+}
+
 export const stringOfType = (type: Type): string => {
   switch (type.type) {
     case 'UnitTypeAST':
@@ -63,13 +77,18 @@ export const stringOfType = (type: Type): string => {
     case 'IntTypeAST':
       return 'Int'
     case 'TypeVarAST':
-      return type.name
+      return stringOfTypeVar(Number.parseInt(type.name))
     case 'AppTypeAST':
-      return `(${stringOfType(type.left)} ${stringOfType(type.right)})`
+      // if the right side is an application, wrap it in parens
+      const r: string = type.right.type === 'AppTypeAST' ? `(${stringOfType(type.right)})` : stringOfType(type.right)
+      const l: string = stringOfType(type.left)
+      return `${l} ${r}`
     case 'FunctionTypeAST':
-      return `(${stringOfType(type.left)} -> ${stringOfType(type.right)})`
+      const leftString: string = type.left.type === 'FunctionTypeAST' ? `(${stringOfType(type.left)})` : stringOfType(type.left)
+      const rightString: string = stringOfType(type.right)
+      return `${leftString} -> ${rightString}`
     case 'PolymorphicTypeAST':
-      return `(${type.input} -> ${stringOfType(type.output)})`
+      return `${stringOfTypeVar(Number.parseInt(type.input))} . ${stringOfType(type.output)}`
     case 'ListTypeAST':
       return `[${stringOfType(type.t)}]`
   }

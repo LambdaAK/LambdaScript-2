@@ -3,7 +3,7 @@ import { Expr } from "../AST/expr/expr"
 import { L9Expr } from "../AST/expr/L9"
 import { Pat } from "../AST/pat/Pat"
 import { PatL2 } from "../AST/pat/PatL2"
-import { Type } from "../AST/type/Type"
+import { stringOfType, Type } from "../AST/type/Type"
 import { ImmMap } from "../util/ImmMap"
 import { Maybe } from "../util/maybe"
 
@@ -53,6 +53,10 @@ export function objectsEqual(obj1: any, obj2: any): boolean {
     // If the value is an object, recursively compare the structures
     if (type1 === 'object' && !objectsEqual(obj1[key], obj2[key])) {
       return false;
+    }
+    // otherwise, compare the values
+    if (obj1[key] !== obj2[key]) {
+      return false
     }
   }
 
@@ -234,6 +238,9 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
       }
       return [instantiate(type), []]
     case 'PlusAST':
+    case "MinusAST":
+    case "TimesAST":
+    case "DivideAST":
       const [leftType, leftEquations] = generate(expr.left, staticEnv)
       const [rightType, rightEquations] = generate(expr.right, staticEnv)
 
@@ -337,8 +344,46 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
 
       return [ot, [[lt, { type: 'FunctionTypeAST', left: rt, right: ot }], ...le, ...re]]
 
-    default:
-      throw new Error('Unimplemented in generate')
+    case "ConjunctionAST":
+    case "DisjunctionAST":
+      const [leftType1, leftEquations1] = generate(expr.left, staticEnv)
+      const [rightType1, rightEquations1] = generate(expr.right, staticEnv)
+
+      return [
+        { type: 'BoolTypeAST' },
+        [
+          [leftType1, { type: 'BoolTypeAST' }],
+          [rightType1, { type: 'BoolTypeAST' }],
+          ...leftEquations1,
+          ...rightEquations1
+        ]
+      ]
+    case "RelAST":
+      const [leftType2, leftEquations2] = generate(expr.left, staticEnv)
+      const [rightType2, rightEquations2] = generate(expr.right, staticEnv)
+
+      return [
+        { type: 'BoolTypeAST' },
+        [
+          [leftType2, { type: 'IntTypeAST' }],
+          [rightType2, { type: 'IntTypeAST' }],
+          ...leftEquations2,
+          ...rightEquations2
+        ]
+      ]
+    
+    case "ConsAST":
+      const [leftType3, leftEquations3] = generate(expr.left, staticEnv)
+      const [rightType3, rightEquations3] = generate(expr.right, staticEnv)
+
+      return [
+        { type: 'ListTypeAST', t: leftType3 },
+        [
+          [rightType3, { type: 'ListTypeAST', t: leftType3 }],
+          ...leftEquations3,
+          ...rightEquations3
+        ]
+      ]
   }
 }
 
@@ -482,26 +527,46 @@ export const getType = (type: Type, staticEnv: TypeEquation[]): Type => {
 }
 
 const getTypeVariables = (type: Type): Type[] => {
-  switch (type.type) {
-    case 'TypeVarAST':
-      return [type]
-    case 'IntTypeAST':
-      return []
-    case 'BoolTypeAST':
-      return []
-    case 'StringTypeAST':
-      return []
-    case 'UnitTypeAST':
-      return []
-    case 'FunctionTypeAST':
-      return [...getTypeVariables(type.left), ...getTypeVariables(type.right)]
-    case 'AppTypeAST':
-      return [...getTypeVariables(type.left), ...getTypeVariables(type.right)]
-    case "ListTypeAST":
-      return getTypeVariables(type.t)
-    default:
-      throw new Error('Unimplemented in getTypeVariables')
+  const getTypeVariablesAux = (type: Type): Type[] => {
+    switch (type.type) {
+      case 'TypeVarAST':
+        return [type]
+      case 'IntTypeAST':
+        return []
+      case 'BoolTypeAST':
+        return []
+      case 'StringTypeAST':
+        return []
+      case 'UnitTypeAST':
+        return []
+      case 'FunctionTypeAST':
+        return [...getTypeVariablesAux(type.left), ...getTypeVariablesAux(type.right)]
+      case 'AppTypeAST':
+        return [...getTypeVariablesAux(type.left), ...getTypeVariablesAux(type.right)]
+      case "ListTypeAST":
+        return getTypeVariablesAux(type.t)
+
+      case "PolymorphicTypeAST":
+        // there is the input type and the variables inside of the output type
+
+        const inputType: Type = {
+          type: "TypeVarAST",
+          name: type.input
+        }
+
+        return [inputType, ...getTypeVariablesAux(type.output)]
+
+      default:
+        throw new Error('Unimplemented in getTypeVariables')
+    }
   }
+
+  const typeVars = getTypeVariablesAux(type)
+
+  // get rid of duplicates
+  // compare by object structure, not reference
+
+  return deleteDuplicates(typeVars)
 }
 
 const flattenTypes = (types: Type[]): Type[] => {
@@ -521,13 +586,13 @@ const flattenTypes = (types: Type[]): Type[] => {
 }
 
 const assoc = (key: Type, map: [Type, Type][]): Type => {
-  console.log("assoc")
-  console.log(key)
-  console.dir(map, {depth: null})
-  if (map.length === 0) throw new Error('Key not found in assoc')
-  const [[k, v] , ...rest] = map
-  if (objectsEqual(key, k)) return v
-  else return assoc(key, rest)
+  for (let i = 0; i < map.length; i++) {
+    const [k, v] = map[i]
+    if (objectsEqual(k, key)) {
+      return v
+    }
+  }
+  throw new Error('Key not found in assoc')
 }
 
 const replaceTypes = (replacements: [Type, Type][], type: Type): Type => {
@@ -561,7 +626,21 @@ const replaceTypes = (replacements: [Type, Type][], type: Type): Type => {
         t: replaceTypes(replacements, type.t)
       }
     case "PolymorphicTypeAST":
-      throw new Error('Polymorphic types should not be present in replaceTypes')
+      // replace the input type manually
+
+      const newInputType: Type = assoc({ type: "TypeVarAST", name: type.input }, replacements)
+
+      // newInputType is guaranteed to be a TypeVarAST
+
+      if (newInputType.type != "TypeVarAST") throw new Error('Type variable expected in replaceTypes')
+
+      const newOutputType: Type = replaceTypes(replacements, type.output)
+
+      return {
+        type: "PolymorphicTypeAST",
+        input: newInputType.name,
+        output: newOutputType
+      }
   }
 }
 
@@ -575,6 +654,21 @@ const deleteDuplicates = (objects: any[]): any[] => {
     seen.add(key)
     return true
   })
+
+}
+
+export const generalizeTypeVars = (type: Type): Type => {
+  const typeVars = getTypeVariables(type)
+  
+  const replacements: [Type, Type][] = typeVars.map(t => [t, freshTypeVar()])
+
+  // make the replacements
+
+  const replaced = replaceTypes(replacements, type)
+
+  // then, abstractify
+
+  return abstractify (replaced, replacements.map(([_, t]) => t).reverse())
 
 }
 
@@ -653,20 +747,9 @@ export const generalize = (equations: TypeEquation[], staticEnv : StaticEnv, t: 
 
   freeVariables = deleteDuplicates(freeVariables)
 
-  console.log("freevariables: ")
-  console.dir(freeVariables, {depth: null})
-
   const replacements: [Type, Type][] = freeVariables.map(v => [v, freshTypeVar()])
 
-  console.log("replacements")
-
-  console.log(replacements)
-
   const generalizedType = abstractify(replaceTypes(replacements, u1), replacements.map(([_, t]) => t))
-
-  console.log("Generalized Type:")
-
-  console.dir(generalizedType, {depth: null})
 
   return generalizedType
 }
@@ -691,8 +774,28 @@ const instantiate = (type: Type): Type => {
  */
 export const fixType = (type: Type) => {
   const typeVars = getTypeVariables(type)
-  const fixedTypeVars = deleteDuplicates(typeVars)
-  const replacements: [Type, Type][] = fixedTypeVars.map((v, i) => [v, { type: 'TypeVarAST', name: String(i + 1) }])
-  return replaceTypes(replacements, type)
+  
+  const replacements: [Type, Type][] = typeVars.map((t: Type, i: number) => {
+    const tt: Type = {
+      type: "TypeVarAST",
+      name: String(i + 1)
+    }
+
+    return [t, tt]
+  })
+
+  const fixed = replaceTypes(replacements, type)
+  
+  return fixed
 }
 
+export const typeOfExpr = (expr: Expr): Type => {
+  // generate the type equations
+  const [t, equations] = generate(expr, new ImmMap([]))
+  // unify the equations
+  const unified = unify(equations)
+  // get the type
+  const tt = getType(t, unified)
+  // fix the type
+  return tt
+}
