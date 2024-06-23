@@ -3,7 +3,7 @@ import { Maybe, none, some } from "../../util/maybe";
 import { combineParsers, Parser } from "../parser";
 import { typeL3Parser } from "./TypeL3";
 
-const polymorphicTypeParser: Parser<TypeL4> = (input: Token[]): Maybe<[TypeL4, Token[]]> => {
+var polymorphicTypeParser: Parser<TypeL4> = (input: Token[]): Maybe<[TypeL4, Token[]]> => {
   // first token should be Fn
   if (input.length === 0) {
     return none()
@@ -59,4 +59,4 @@ const polymorphicTypeParser: Parser<TypeL4> = (input: Token[]): Maybe<[TypeL4, T
   return some([polymorphicType, rest])
 }
 
-export const typeL4Parser = combineParsers([polymorphicTypeParser, typeL3Parser])
+export var typeL4Parser = combineParsers([polymorphicTypeParser, typeL3Parser])

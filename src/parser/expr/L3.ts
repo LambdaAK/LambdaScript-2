@@ -5,7 +5,7 @@ import { Token, BinaryOperatorType, MultiplyOperatorType } from "../../lexer/tok
 import { Parser } from "../parser"
 import { appParser } from "./L2"
 
-export const termParser: Parser<L3Term> = (input: Token[]): Maybe<[L3Term, Token[]]> => {
+export var termParser: Parser<L3Term> = (input: Token[]): Maybe<[L3Term, Token[]]> => {
   // parse a list of factors
   const factors: L2App[] = []
   const bops: BinaryOperatorType[] = []

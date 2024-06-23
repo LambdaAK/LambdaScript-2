@@ -9,7 +9,7 @@ import { PatL1 } from "../../AST/pat/PatL1"
 import { defnParser } from "../defn/defnParser"
 import { DefnNode } from "../../AST/defn/defnL1"
 
-const parseInputPatWithoutTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
+var parseInputPatWithoutTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
   // parse the pattern
   const patResult = patL1Parser(input)
   if (patResult.type === 'None') return none()
@@ -17,7 +17,7 @@ const parseInputPatWithoutTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe
   return some([pat, none(), rest])
 }
 
-const parseInputPatWithTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
+var parseInputPatWithTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
   // if the first token is not a paren, return none
   if (input.length === 0) return none()
   if (input[0].type !== 'LParen') return none()
@@ -56,7 +56,7 @@ const parseInputPatWithTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<Ty
   return some([pat, some(typeAnnotation), rest3])
 }
 
-const parseInputPatAndTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
+var parseInputPatAndTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
   const result1 = parseInputPatWithoutTypeAnnotation(input)
   if (result1.type === 'Some') return result1
   const result2 = parseInputPatWithTypeAnnotation(input)
@@ -64,7 +64,7 @@ const parseInputPatAndTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<Typ
 }
 
 
-export const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
+export var functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   const resultPat = parseInputPatAndTypeAnnotation(input)
   if (resultPat.type === 'None') {
     return { type: 'None' }
@@ -96,7 +96,7 @@ export const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, T
   return some([functionNode, rest2])
 }
 
-const ifParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
+var ifParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   // the first token should be If
   if (input.length === 0) return none()
   if (input[0].type !== "IfToken") return none()
@@ -155,7 +155,7 @@ const ifParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
 }
 
 
-const statementParser: Parser<L9Expr | DefnNode> = (input: Token[]): Maybe<[(L9Expr | DefnNode), Token[]]> => {
+var statementParser: Parser<L9Expr | DefnNode> = (input: Token[]): Maybe<[(L9Expr | DefnNode), Token[]]> => {
   // a statement is either a definition or an expression
   // try to parse a definition
   const defnResult = defnParser(input)
@@ -168,7 +168,7 @@ const statementParser: Parser<L9Expr | DefnNode> = (input: Token[]): Maybe<[(L9E
 }
 
 
-const blockParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
+var blockParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   /*
   {
     statement1;
@@ -248,4 +248,4 @@ const blockParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> =
   return some([blockNode, tokensAfterStatements])
 }
 
-export const exprParser: Parser<L9Expr> = combineParsers([blockParser, functionParser, ifParser, consParser])
+export var exprParser: Parser<L9Expr> = combineParsers([blockParser, functionParser, ifParser, consParser])

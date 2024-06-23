@@ -5,7 +5,7 @@ import { Token } from "../../lexer/token"
 import { combineParsers } from "../parser"
 import { patL2Parser } from "./PatL2"
 
-const nilPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var nilPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'NilToken') {
     const nilNode: PatL1 = {
@@ -19,7 +19,7 @@ const nilPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const boolPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var boolPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'BooleanToken') {
     const booleanNode: PatL1 = {
@@ -34,7 +34,7 @@ const boolPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const stringPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var stringPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'StringToken') {
     const stringNode: PatL1 = {
@@ -49,7 +49,7 @@ const stringPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const intPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var intPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'NumberToken') {
     const numberNode: PatL1 = {
@@ -64,7 +64,7 @@ const intPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const wildcardPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var wildcardPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'Wildcard') {
     const wildcardNode: PatL1 = {
@@ -78,7 +78,7 @@ const wildcardPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const unitPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var unitPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'UnitToken') {
     const unitNode: PatL1 = {
@@ -92,7 +92,7 @@ const unitPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const idPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var idPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type === 'IdentifierToken') {
     const idNode: PatL1 = {
@@ -107,7 +107,7 @@ const idPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   else return { type: 'None' }
 }
 
-const parenPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+var parenPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
   console.log("B")
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'LParen') return { type: 'None' }
@@ -132,15 +132,4 @@ const parenPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
 
 }
 
-export const patL1Parser = combineParsers([nilPatParser, boolPatParser, stringPatParser, intPatParser, wildcardPatParser, unitPatParser, idPatParser, parenPatParser])
-
-export {
-  nilPatParser,
-  boolPatParser,
-  stringPatParser,
-  intPatParser,
-  wildcardPatParser,
-  unitPatParser,
-  idPatParser,
-  parenPatParser
-}
+export var patL1Parser = combineParsers([nilPatParser, boolPatParser, stringPatParser, intPatParser, wildcardPatParser, unitPatParser, idPatParser, parenPatParser])

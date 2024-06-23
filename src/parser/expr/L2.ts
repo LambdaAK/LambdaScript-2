@@ -5,7 +5,7 @@ import { Token } from "../../lexer/token"
 import { Parser } from "../parser"
 import { factorParser } from "./L1"
 
-export const appParser: Parser<L2App> = (input: Token[]): Maybe<[L2App, Token[]]> => {
+export var appParser: Parser<L2App> = (input: Token[]): Maybe<[L2App, Token[]]> => {
   // parse a list of factors while possible
   // then, fold them an application
   // application is left associative

@@ -4,7 +4,7 @@ import { Token, ConsOperatorType } from "../../lexer/token"
 import { Parser } from "../parser"
 import { disjunctionParser } from "./L7"
 
-export const consParser: Parser<L8Cons> = (input: Token[]): Maybe<[L8Cons, Token[]]> => {
+export var consParser: Parser<L8Cons> = (input: Token[]): Maybe<[L8Cons, Token[]]> => {
   // parse a disjunction
   const result = disjunctionParser(input)
   if (result.type === 'None') {

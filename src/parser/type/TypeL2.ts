@@ -3,7 +3,7 @@ import { Token } from "../../lexer/token"
 import { Parser, combineParsers } from "../parser"
 import { typeL1Parser } from "./TypeL1"
 
-const appTypeParser: Parser<TypeL2> = (input: Token[]): Maybe<[TypeL2, Token[]]> => {
+var appTypeParser: Parser<TypeL2> = (input: Token[]): Maybe<[TypeL2, Token[]]> => {
   // parse a list of TypeL1, while possible
   const typeL1s: TypeL1[] = []
   let rest = input
@@ -36,4 +36,4 @@ const appTypeParser: Parser<TypeL2> = (input: Token[]): Maybe<[TypeL2, Token[]]>
 
 }
 
-export const typeL2Parser: Parser<TypeL2> = combineParsers([appTypeParser, typeL1Parser])
+export var typeL2Parser: Parser<TypeL2> = combineParsers([appTypeParser, typeL1Parser])

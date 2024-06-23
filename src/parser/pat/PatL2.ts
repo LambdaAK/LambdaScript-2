@@ -2,9 +2,10 @@ import { PatL2 } from "../../AST/pat/PatL2"
 import { Maybe, none, some } from "../../util/maybe"
 import { Token, ConsOperatorType } from "../../lexer/token"
 import { combineParsers } from "../parser"
+import { patL1Parser } from "./PatL1"
 
 
-const consPatParser = (input: Token[]): Maybe<[PatL2, Token[]]> => {
+var consPatParser = (input: Token[]): Maybe<[PatL2, Token[]]> => {
   // parse a PatL1
   const result = patL1Parser(input)
   if (result.type === 'None') {
@@ -38,4 +39,4 @@ const consPatParser = (input: Token[]): Maybe<[PatL2, Token[]]> => {
   }
 }
 
-export const patL2Parser = combineParsers([consPatParser, patL1Parser])
+export var patL2Parser = combineParsers([consPatParser, patL1Parser])

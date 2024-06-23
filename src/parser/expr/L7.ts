@@ -5,7 +5,7 @@ import { Token, DisjunctionOperatorType } from "../../lexer/token"
 import { Parser } from "../parser"
 import { conjunctionParser } from "./L6"
 
-export const disjunctionParser: Parser<L7Disjunction> = (input: Token[]): Maybe<[L7Disjunction, Token[]]> => {
+export var disjunctionParser: Parser<L7Disjunction> = (input: Token[]): Maybe<[L7Disjunction, Token[]]> => {
   const conjunctions: L6Conjunction[] = []
 
   let rest = input

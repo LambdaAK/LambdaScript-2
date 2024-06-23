@@ -4,7 +4,7 @@ import { Maybe, none, some } from "../../util/maybe"
 import { Token, RelationalOperatorType } from "../../lexer/token"
 import { arithParser } from "./L4"
 
-export const relParser = (input: Token[]): Maybe<[L5Rel, Token[]]> => {
+export var relParser = (input: Token[]): Maybe<[L5Rel, Token[]]> => {
 
   const ariths: L4Arith[] = []
   const bops: RelationalOperatorType[] = []

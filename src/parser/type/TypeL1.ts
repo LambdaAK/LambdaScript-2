@@ -4,7 +4,7 @@ import { Parser, combineParsers } from "../parser"
 import { typeL4Parser } from "./TypeL4"
 import { typeL3Parser } from "./TypeL3"
 
-const unitTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var unitTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'UnitTypeToken') return { type: 'None' }
   return some([{
@@ -12,7 +12,7 @@ const unitTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]
   }, input.slice(1)])
 }
 
-const boolTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var boolTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'BoolTypeToken') return { type: 'None' }
   return some([{
@@ -20,7 +20,7 @@ const boolTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]
   }, input.slice(1)])
 }
 
-const stringTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var stringTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'StringTypeToken') return { type: 'None' }
   return some([{
@@ -28,7 +28,7 @@ const stringTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[
   }, input.slice(1)])
 }
 
-const intTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var intTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'IntTypeToken') return { type: 'None' }
   return some([{
@@ -36,7 +36,7 @@ const intTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]>
   }, input.slice(1)])
 }
 
-const parenTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var parenTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'LParen') return { type: 'None' }
 
@@ -62,7 +62,7 @@ const parenTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]
 
 }
 
-const listTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var listTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return none()
   if (input[0].type !== 'LBracket') return none()
   const rest = input.slice(1)
@@ -79,7 +79,7 @@ const listTypeParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]
   return some([newType, rest2.slice(1)])
 }
 
-const typeVarParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
+var typeVarParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'IdentifierToken') return { type: 'None' }
   return some([{
@@ -89,4 +89,4 @@ const typeVarParser: Parser<TypeL1> = (input: Token[]): Maybe<[TypeL1, Token[]]>
 
 }
 
-export const typeL1Parser = combineParsers([listTypeParser, unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser, typeVarParser])
+export var typeL1Parser = combineParsers([listTypeParser, unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser, typeVarParser])
