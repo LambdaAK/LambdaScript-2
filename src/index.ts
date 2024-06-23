@@ -2,11 +2,11 @@ import { isNone, Maybe, none, some } from "./util/maybe"
 import { lex } from "./lexer/Lexer"
 
 import { L9Expr } from "./AST/expr/L9"
-import { condenseExpr } from "./AST/expr/condenseExpr"
 import { Expr, stringOfExpr } from "./AST/expr/expr"
 import { stringOfType } from "./AST/type/Type"
 import { exprParser } from "./parser/parser"
 import { fixType, generalizeTypeVars, typeOfExpr } from "./typecheck/typecheck"
+import { condenseExpr } from "./AST/condense"
 
 export const lexAndParseExpr = (s: string): Expr => {
   const tokens = lex(s)
@@ -38,4 +38,4 @@ const repl = () => {
   })
 }
 
-repl()
+//repl()
