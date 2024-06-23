@@ -4,6 +4,8 @@ import { Token } from "../lexer/token";
 export type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
 const combine = <T>(p1: Parser<T>, p2: Parser<T>): Parser<T> => {
+  console.log(p2)
+  console.log(typeof p2)
   const p3: Parser<T> = (input: Token[]) => {
     const result = p1(input)
     if (result.type === 'None') {
@@ -17,10 +19,13 @@ const combine = <T>(p1: Parser<T>, p2: Parser<T>): Parser<T> => {
 }
 
 export const combineParsers = <T>(parsers: Parser<T>[]): Parser<T> => {
-  const combined = parsers.reduce((acc, parser) => {
-    return combine(acc, parser)
-  })
-  return combined
+  console.log("combining parsers")
+  console.log(parsers)
+  let combinedParser: Parser<T> = (input: Token[]) => none()
+  for (let i = 0; i < parsers.length; i++) {
+    combinedParser = combine(combinedParser, parsers[i])
+  }
+  return combinedParser
 }
 
 export const assertNextToken = (tokens : Token[], expectedType : string) : Maybe<Token[]> => {

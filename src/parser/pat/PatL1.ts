@@ -108,6 +108,7 @@ const idPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
 }
 
 const parenPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
+  console.log("B")
   if (input.length === 0) return { type: 'None' }
   if (input[0].type !== 'LParen') return { type: 'None' }
 
@@ -132,3 +133,14 @@ const parenPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
 }
 
 export const patL1Parser = combineParsers([nilPatParser, boolPatParser, stringPatParser, intPatParser, wildcardPatParser, unitPatParser, idPatParser, parenPatParser])
+
+export {
+  nilPatParser,
+  boolPatParser,
+  stringPatParser,
+  intPatParser,
+  wildcardPatParser,
+  unitPatParser,
+  idPatParser,
+  parenPatParser
+}

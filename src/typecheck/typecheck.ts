@@ -108,12 +108,17 @@ const bindDefn = (defn: DefnAST, staticEnv: StaticEnv): [StaticEnv, TypeEquation
   let [bodyType, equations] = generate(body, staticEnv)
 
   const generalizedType = generalize(equations, staticEnv, bodyType)
+  
+  console.log("generalized type: ")
+  console.dir(generalizedType, {depth: null})
 
   // bind the pattern to the type of the body
 
   const newStaticEnv = bindPat(pat, generalizedType, staticEnv)
 
-  return [newStaticEnv, equations]
+  const typeAnnotationEquation: TypeEquation[] = type.type === 'None' ? [] : [[generalizedType, type.value]]
+
+  return [newStaticEnv, [...equations, ...typeAnnotationEquation]]
 }
 
 export const substituteTypeVars = (toReplace: string, replaceWith: string, type: Type): Type => {
@@ -429,7 +434,7 @@ export const unify = (equations: TypeEquation[]): TypeEquation[] => {
     // replace t2 with t1 in the rest of the equations
     const newRest: TypeEquation[] = rest.map(([t, tt]) => [substituteTypes(t2, t1, t), substituteTypes(t2, t1, tt)])
 
-    return [[t1, t2], ...unify(newRest)]
+    return [[t2, t1], ...unify(newRest)]
   }
 
   // if they are both function types, unify the left and right types
@@ -837,6 +842,10 @@ export const typeOfExpr = (expr: Expr): Type => {
   // unify the equations
   const unified = unify(equations)
   // get the type
+  console.log("type")
+  console.dir(t, {depth: null})
+  console.log("unified")
+  console.dir(unified, {depth: null})
   const tt = getType(t, unified)
   // fix the type
   return tt

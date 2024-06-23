@@ -12,6 +12,43 @@ type TestCase = {
   expected: string
 }
 
+const intTestModifier1 = (input: TestCase) => {
+  return {
+    input: `(${input.input}) + 1`,
+    expected: 'Int'
+  }
+}
+
+const intTestModifier2 = (input: TestCase) => {
+  return {
+    input: `(${input.input}) + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10`,
+    expected: 'Int'
+  }
+}
+
+const intTestModifier3 = (input: TestCase) => {
+  return {
+    input: `(${input.input}) + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16`,
+    expected: 'Int'
+  }
+}
+
+const intTestModifier4 = (input: TestCase) => {
+  return {
+    input: `(${input.input}) + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20`,
+    expected: 'Int'
+  }
+}
+
+const intTestModifier = (input: TestCase) => {
+  return [
+    intTestModifier1(input),
+    intTestModifier2(input),
+    intTestModifier3(input),
+    intTestModifier4(input)
+  ]
+}
+
 const arithTests1: TestCase[] = 
 [
   "1 + 1 - 1 + 2 - 3 + 4 - 5 + 6 - 7 + 8 - 9 + 10",
@@ -36,6 +73,9 @@ const arithTests1: TestCase[] =
     expected: 'Int'
   }
 })
+.flatMap(intTestModifier)
+.flatMap(intTestModifier)
+
 
 const arithTests2: TestCase[] = [
   `{
@@ -334,16 +374,25 @@ const functionTypeTests: TestCase[] = [
     }
 ]
 
+const complexTests1: TestCase[] = [
+  {
+    input: `{val x : Int = 1;val y : Int -> Int = x => x + 1;y x;}`,
+    expected: "Int"
+  }
+]
+
 const runTest = (input: string, expected: string) => {
   const ast = lexAndParseExpr(input)
   const type = typeOfExpr(ast)
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests)
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1)
 
-testCases.forEach(({ input, expected }) => {
+arithTests1.forEach(({ input, expected }) => {
+  console.log(input)
+  setTimeout(() => {
   test(input, () => {
     runTest(input, expected)
-  })
+  })}, 10000)
 })

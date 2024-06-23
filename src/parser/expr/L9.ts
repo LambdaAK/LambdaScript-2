@@ -64,7 +64,7 @@ const parseInputPatAndTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<Typ
 }
 
 
-const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
+export const functionParser: Parser<L9Expr> = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   const resultPat = parseInputPatAndTypeAnnotation(input)
   if (resultPat.type === 'None') {
     return { type: 'None' }
