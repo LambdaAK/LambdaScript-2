@@ -15,35 +15,37 @@ import { PatL2 } from "../AST/pat/PatL2";
 
 export type Parser<T> = (input: Token[]) => Maybe<[T, Token[]]>
 
-const combine = <T>(p1: Parser<T>, p2: Parser<T>): Parser<T> => {
-  console.log(p2)
-  console.log(typeof p2)
-  const p3: Parser<T> = (input: Token[]) => {
-    const result = p1(input)
-    if (result.type === 'None') {
-      return p2(input)
+namespace ParserUtil {
+  export const combine = <T>(p1: Parser<T>, p2: Parser<T>): Parser<T> => {
+    console.log(p2)
+    console.log(typeof p2)
+    const p3: Parser<T> = (input: Token[]) => {
+      const result = p1(input)
+      if (result.type === 'None') {
+        return p2(input)
+      }
+      else {
+        return result
+      }
     }
-    else {
-      return result
+    return p3
+  }
+  
+  export const combineParsers = <T>(parsers: Parser<T>[]): Parser<T> => {
+    console.log("combining parsers")
+    console.log(parsers)
+    let combinedParser: Parser<T> = (input: Token[]) => none()
+    for (let i = 0; i < parsers.length; i++) {
+      combinedParser = combine(combinedParser, parsers[i])
     }
+    return combinedParser
   }
-  return p3
-}
-
-export const combineParsers = <T>(parsers: Parser<T>[]): Parser<T> => {
-  console.log("combining parsers")
-  console.log(parsers)
-  let combinedParser: Parser<T> = (input: Token[]) => none()
-  for (let i = 0; i < parsers.length; i++) {
-    combinedParser = combine(combinedParser, parsers[i])
+  
+  export const assertNextToken = (tokens : Token[], expectedType : string) : Maybe<Token[]> => {
+    if (tokens.length === 0) return none()
+    if (tokens[0].type !== expectedType) return none()
+    return some(tokens.slice(1))
   }
-  return combinedParser
-}
-
-export const assertNextToken = (tokens : Token[], expectedType : string) : Maybe<Token[]> => {
-  if (tokens.length === 0) return none()
-  if (tokens[0].type !== expectedType) return none()
-  return some(tokens.slice(1))
 }
 
 /*
@@ -235,7 +237,7 @@ parenFactorParser = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
 
 }
 
-factorParser = combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, parenFactorParser])
+factorParser = ParserUtil.combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, parenFactorParser])
 
 /*
   L2Expr
@@ -851,7 +853,7 @@ blockParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
 
   // the first token should be LBrace
 
-  const tokensAfterLBraceResult = assertNextToken(input, "LBrace")
+  const tokensAfterLBraceResult = ParserUtil.assertNextToken(input, "LBrace")
   if (tokensAfterLBraceResult.type === "None") return none()
 
   const tokensAfterLBrace = tokensAfterLBraceResult.value
@@ -881,7 +883,7 @@ blockParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
 
     // the next token should be a semicolon
 
-    const tokensAfterSemiColonResult = assertNextToken(tokens, "SemiColonToken")
+    const tokensAfterSemiColonResult = ParserUtil.assertNextToken(tokens, "SemiColonToken")
 
     if (tokensAfterSemiColonResult.type === "None") {
       return none()
@@ -901,7 +903,7 @@ blockParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
 
   // the next token should be RBrace
 
-  const tokensAfterStatementsResult = assertNextToken(tokens, "RBrace")
+  const tokensAfterStatementsResult = ParserUtil.assertNextToken(tokens, "RBrace")
 
   if (tokensAfterStatementsResult.type === "None") return none()
 
@@ -917,7 +919,7 @@ blockParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
   return some([blockNode, tokensAfterStatements])
 }
 
-exprParser = combineParsers([blockParser, functionParser, ifParser, consParser])
+exprParser = ParserUtil.combineParsers([blockParser, functionParser, ifParser, consParser])
 
 /*
   PatL1
@@ -1050,7 +1052,7 @@ parenPatParser = (input: Token[]): Maybe<[PatL1, Token[]]> => {
 
 }
 
-patL1Parser = combineParsers([nilPatParser, boolPatParser, stringPatParser, intPatParser, wildcardPatParser, unitPatParser, idPatParser, parenPatParser])
+patL1Parser = ParserUtil.combineParsers([nilPatParser, boolPatParser, stringPatParser, intPatParser, wildcardPatParser, unitPatParser, idPatParser, parenPatParser])
 
 /*
   PatL2
@@ -1090,7 +1092,7 @@ consPatParser = (input: Token[]): Maybe<[PatL2, Token[]]> => {
   }
 }
 
-patL2Parser = combineParsers([consPatParser, patL1Parser])
+patL2Parser = ParserUtil.combineParsers([consPatParser, patL1Parser])
 
 /*
   TypeL1
@@ -1180,7 +1182,7 @@ typeVarParser = (input: Token[]): Maybe<[TypeL1, Token[]]> => {
 
 }
 
-typeL1Parser = combineParsers([listTypeParser, unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser, typeVarParser])
+typeL1Parser = ParserUtil.combineParsers([listTypeParser, unitTypeParser, boolTypeParser, stringTypeParser, intTypeParser, parenTypeParser, typeVarParser])
 
 /*
   TypeL2
@@ -1219,7 +1221,7 @@ appTypeParser = (input: Token[]): Maybe<[TypeL2, Token[]]> => {
 
 }
 
-typeL2Parser = combineParsers([appTypeParser, typeL1Parser])
+typeL2Parser = ParserUtil.combineParsers([appTypeParser, typeL1Parser])
 
 /*
   TypeL3
@@ -1255,7 +1257,7 @@ functionTypeParser = (input: Token[]): Maybe<[TypeL3, Token[]]> => {
   return some([functionType, rest2])
 }
 
-typeL3Parser = combineParsers([functionTypeParser, typeL2Parser])
+typeL3Parser = ParserUtil.combineParsers([functionTypeParser, typeL2Parser])
 
 /*
   TypeL4
@@ -1316,7 +1318,7 @@ polymorphicTypeParser = (input: Token[]): Maybe<[TypeL4, Token[]]> => {
 
   return some([polymorphicType, rest])
 }
-typeL4Parser = combineParsers([polymorphicTypeParser, typeL3Parser])
+typeL4Parser = ParserUtil.combineParsers([polymorphicTypeParser, typeL3Parser])
 
 /*
   DefnParser
