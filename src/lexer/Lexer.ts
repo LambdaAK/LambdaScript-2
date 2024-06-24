@@ -191,10 +191,17 @@ export const lex = (input: string): Token[] => {
 
   if (input.startsWith("{")) {
     return [{ type: 'LBrace' }, ...lex(input.slice(1))]
-  }
-
+  } 
   if (input.startsWith("}")) {
     return [{ type: 'RBrace' }, ...lex(input.slice(1))]
+  }
+
+  if (input.startsWith("switch")) {
+    return [{ type: 'SwitchToken' }, ...lex(input.slice(6))]
+  }
+
+  if (input.startsWith("case")) {
+    return [{ type: 'CaseToken' }, ...lex(input.slice(4))]
   }
 
   const [token, rest] = lexIdentifier(input)

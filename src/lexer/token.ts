@@ -156,6 +156,14 @@ type FatArrow = {
   type: 'FatArrow'
 }
 
+type SwitchToken = {
+  type: "SwitchToken"
+}
+
+type CaseToken = {
+  type: "CaseToken"
+}
+
 export type Token = LAngle | Rangle | StringToken
   | NumberToken | BopToken | BooleanToken
   | IdentifierToken | LParen | RParen | NilToken | Wildcard | FnToken | RightArrowToken
@@ -164,4 +172,4 @@ export type Token = LAngle | Rangle | StringToken
   | LBracket | RBracket | ColonToken
   | Const | Var | Equals | SemiColonToken
   | LBrace | RBrace
-  | FatArrow
+  | FatArrow | SwitchToken | CaseToken
