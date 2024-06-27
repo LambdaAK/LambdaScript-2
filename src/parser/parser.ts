@@ -656,6 +656,10 @@ namespace L9ExprParser {
 
   var blockParser: Parser<L9Expr>
 
+  var caseParser: (input: Token[]) => Maybe<[PatL2, L9Expr, Token[]]>
+
+  var matchParser: Parser<L9Expr>
+
   export var exprParser: Parser<L9Expr>
 
   parseInputPatWithoutTypeAnnotation = (input: Token[]): Maybe<[PatL1, Maybe<TypeL4>, Token[]]> => {
@@ -816,6 +820,36 @@ namespace L9ExprParser {
     return exprResult
   }
 
+  caseParser = (input: Token[]): Maybe<[PatL2, L9Expr, Token[]]> => {
+    // parse the case keyword
+
+    const tokensAfterCaseResult = ParserUtil.assertNextToken(input, "CaseToken")
+    if (tokensAfterCaseResult.type === "None") return none()
+    const tokensAfterCase = tokensAfterCaseResult.value
+
+    // parse the pattern
+
+    const patResult = L2PatParser.patL2Parser(tokensAfterCase)
+    if (patResult.type === "None") return none()
+    const [pat, tokensAfterPat] = patResult.value
+
+    // parse the fat arrow
+    const tokensAfterFatArrowResult = ParserUtil.assertNextToken(tokensAfterPat, "FatArrow")
+    if (tokensAfterFatArrowResult.type === "None") return none()
+    const tokensAfterFatArrow = tokensAfterFatArrowResult.value
+
+    // parse the expression
+
+    const exprResult = exprParser(tokensAfterFatArrow)
+    if (exprResult.type === "None") return none()
+
+    const [expr, rest] = exprResult.value
+
+    return some([pat, expr, rest])
+
+
+  }
+
 
   blockParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
     /*
@@ -897,7 +931,80 @@ namespace L9ExprParser {
     return some([blockNode, tokensAfterStatements])
   }
 
-  exprParser = ParserUtil.combineParsers([blockParser, functionParser, ifParser, L8ExprParser.consParser])
+  matchParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
+    /*
+      match e with {
+        case p1 => e1;
+        case p2 => e2;
+        ...
+        case pN => eN;
+      }
+    */
+    // parse the match keyword
+
+    console.log("parsing match")
+  
+    const tokensAfterMatchResult = ParserUtil.assertNextToken(input, "MatchToken")
+    if (tokensAfterMatchResult.type === "None") return none()
+    const tokensAfterMatch = tokensAfterMatchResult.value
+
+    console.log("A")
+    // parse the expression e
+
+    const exprResult = exprParser(tokensAfterMatch)
+
+    if (exprResult.type === "None") return none()
+    
+    console.log("B")
+
+    const [expr, tokensAfterExpr] = exprResult.value
+
+    // parse the with keyword
+
+    const tokensAfterWithResult = ParserUtil.assertNextToken(tokensAfterExpr, "WithToken")
+    if (tokensAfterWithResult.type === "None") return none()
+    const tokensAfterWith = tokensAfterWithResult.value
+
+    console.log("C")
+
+    // parse the LBrace
+
+    const tokensAfterLBraceResult = ParserUtil.assertNextToken(tokensAfterWith, "LBrace")
+    if (tokensAfterLBraceResult.type === "None") return none()
+    const tokensAfterLBrace = tokensAfterLBraceResult.value
+
+    // parse the cases
+
+    const cases: [PatL2, L9Expr][] = []
+    let remainingTokens: Token[] = tokensAfterLBrace
+    
+    while (true) {
+      // parse a case
+      const caseResult = caseParser(remainingTokens)
+      if (caseResult.type === "None") break
+      const [pat, expr, rest] = caseResult.value
+      remainingTokens = rest
+      cases.push([pat, expr])
+    }
+
+    // parse an RBrace
+
+    const tokensAfterRBraceResult = ParserUtil.assertNextToken(remainingTokens, "RBrace")
+    if (tokensAfterRBraceResult.type === "None") return none()
+    const tokensAfterRBrace = tokensAfterRBraceResult.value
+
+    // construct the match node
+
+    const matchNode: L9Expr = {
+      type: "MatchNode",
+      expr: expr,
+      cases: cases
+    }
+
+    return some([matchNode, tokensAfterRBrace])
+  }
+
+  exprParser = ParserUtil.combineParsers([matchParser, blockParser, functionParser, ifParser, L8ExprParser.consParser])
 }
 /*
   PatL1

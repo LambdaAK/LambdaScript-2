@@ -22,4 +22,10 @@ type BlockNode = {
   statements: (L9Expr | DefnNode)[]
 }
 
-export type L9Expr = FunctionNode | IfNode | BlockNode | L8Cons
+type MatchNode = {
+  type: "MatchNode",
+  expr: L9Expr,
+  cases: [PatL2, L9Expr][] // [pattern, body]
+}
+
+export type L9Expr = FunctionNode | IfNode | BlockNode | MatchNode | L8Cons

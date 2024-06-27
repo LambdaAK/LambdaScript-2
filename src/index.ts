@@ -29,6 +29,7 @@ const repl = () => {
 
   const repl = (input: string) => {
     const ast = lexAndParseExpr(input)
+    console.dir(ast, {depth: null})
     const type = typeOfExpr(ast)
     console.log(stringOfType(fixType(generalizeTypeVars(type))))
   }

@@ -106,6 +106,12 @@ type BlockAST = {
   statements: (Expr | DefnAST)[]
 }
 
+type MatchAST = {
+  type: "MatchAST",
+  expr: Expr,
+  cases: [Pat, Expr][]
+}
+
 export type Expr = StringAST
   | NumberAST
   | BooleanAST
@@ -124,6 +130,7 @@ export type Expr = StringAST
   | FunctionAST
   | IfAST
   | BlockAST
+  | MatchAST
 
 export const stringOfExpr = (expr: Expr): string => {
   switch (expr.type) {
@@ -174,5 +181,7 @@ export const stringOfExpr = (expr: Expr): string => {
           return stringOfExpr(stmt)
         }
       }).join('\n')}\n}`
+    case 'MatchAST':
+      throw new Error("MatchAST toString not implemented yet.")
   }
 }

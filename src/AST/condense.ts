@@ -153,6 +153,13 @@ condenseExpr = (expr: L9Expr): Expr => {
           else return condenseExpr(statement)
         })
       }
+    
+    case "MatchNode":
+      return {
+        type: "MatchAST",
+        expr: condenseExpr(expr.expr),
+        cases: expr.cases.map(([pat, body]) => [condensePat(pat), condenseExpr(body)])
+      }
   }
 }
 

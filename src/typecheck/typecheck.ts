@@ -280,6 +280,9 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
         ]
       ]
 
+    case "MatchAST":
+      throw new Error('MatchAST not implemented in generate')
+
     case 'FunctionAST':
 
       const [inputType, inputEquations, newBindings] = generatePattern(expr.pattern)

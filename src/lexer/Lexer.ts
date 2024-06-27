@@ -173,6 +173,14 @@ export const lex = (input: string): Token[] => {
     return [{ type: 'ValToken' }, ...lex(input.slice(3))]
   }
 
+  if (input.startsWith("match")) {
+    return [{ type: 'MatchToken' }, ...lex(input.slice(5))]
+  }
+
+  if (input.startsWith("with")) {
+    return [{ type: 'WithToken' }, ...lex(input.slice(4))]
+  }
+
   if (input.startsWith("var")) {
     return [{ type: 'VarToken' }, ...lex(input.slice(3))]
   }
@@ -194,10 +202,6 @@ export const lex = (input: string): Token[] => {
   } 
   if (input.startsWith("}")) {
     return [{ type: 'RBrace' }, ...lex(input.slice(1))]
-  }
-
-  if (input.startsWith("switch")) {
-    return [{ type: 'SwitchToken' }, ...lex(input.slice(6))]
   }
 
   if (input.startsWith("case")) {
