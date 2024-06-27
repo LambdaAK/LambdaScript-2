@@ -227,9 +227,31 @@ const generatePattern = (pattern: Pat): [Type, TypeEquation[], StaticEnv] => {
     case "WildcardPatAST":
       return [freshTypeVar(), [], new ImmMap([])]
     case "ConsPatAST":
-      throw new Error('ConsPat not implemented in generatePattern')
+      /*  | CConsPat (p1, p2) ->
+      let t1, env1, c1 = type_of_pat p1 static_env in
+      let t2, env2, c2 = type_of_pat p2 static_env in
+
+      (* since h :: t is a list, and h : t1 and t : t2, it must hold that [t1] =
+         t2 return this constraint as well *)
+      (CListType t1, env1 @ env2, (CListType t1, t2) :: (c1 @ c2)) */
+
+
+      const [t1, c1, env1] = generatePattern(pattern.left)
+      const [t2, c2, env2] = generatePattern(pattern.right)
+
+      // since h :: t is a list, and h : t1 and t : t2, it must hold that [t1] = t2. make this a type equation
+
+      const listType: Type = {
+        type: "ListTypeAST",
+        t: t1
+      }
+
+      return [listType, [...c1, ...c2, [listType, t2]], ImmMap.union(env1, env2)]
+
     case "NilPatAST":
-      throw new Error('NilPat not implemented in generatePattern')
+      // it must be of a list type
+      const typeVar2 = freshTypeVar()
+      return [{ type: 'ListTypeAST', t: typeVar2 }, [], new ImmMap([])]
   }
 }
 
@@ -281,7 +303,33 @@ export const generate = (expr: Expr, staticEnv: StaticEnv): [Type, TypeEquation[
       ]
 
     case "MatchAST":
-      throw new Error('MatchAST not implemented in generate')
+      // generate the type of the expression we are matching against
+
+      const [matchingAgainstType, matchingAgainstEquations] = generate(expr.expr, staticEnv)
+
+      // generate the type and constraints of the pattern of each case
+
+      const cases = expr.cases
+
+      const typeThatAllCasesMustBe = freshTypeVar()
+
+      const branchConstraints: TypeEquation[] = cases.flatMap(([pat, branch]) => {
+        const [patType, patEquations, newBindings] = generatePattern(pat)
+        const [branchType, branchEquations] = generate(branch, ImmMap.union(newBindings, staticEnv))
+
+        // patType must equal matchingAgainstType
+        // branchType must equal typeThatAllCasesMustBe
+
+        return [
+          [patType, matchingAgainstType],
+          [branchType, typeThatAllCasesMustBe],
+          ...patEquations,
+          ...branchEquations
+        ]
+
+      })
+
+      return [typeThatAllCasesMustBe, [...matchingAgainstEquations, ...branchConstraints]]
 
     case 'FunctionAST':
 
