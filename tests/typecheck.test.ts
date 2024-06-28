@@ -412,6 +412,20 @@ const functionTypeTests: TestCase[] = [
     expected: "a . a -> a"
    },
    {
+    input: `{
+      val f = x => x;
+      f 1 < 2 || f True;
+    }`,
+    expected: "Bool"
+   },
+   {
+    input: `(x => x) ({
+      val f = x => x;
+      f 1 < 2 || f True;
+    })`,
+    expected: "Bool"
+   },
+   {
     input: "x => x + 1",
     expected: "Int -> Int"
    },

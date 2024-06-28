@@ -852,11 +852,7 @@ namespace L9ExprParser {
     if (tokensAfterSemiColonResult.type === "None") return none()
     const tokensAfterSemiColon = tokensAfterSemiColonResult.value
 
-
-
     return some([pat, expr, tokensAfterSemiColon])
-
-
   }
 
 
