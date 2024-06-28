@@ -72,11 +72,21 @@ const typeTestModifier4 = (input: TestCase) => {
   }
 }
 
+const typeTestModifier5 = (input: TestCase) => {
+  return {
+    input: `match 0 with {
+      case _ => ${input.input};
+    }`,
+    expected: input.expected
+  }
+}
+
 const typeTestModifiers = [
   typeTestModifier1,
   typeTestModifier2,
   typeTestModifier3,
-  typeTestModifier4
+  typeTestModifier4,
+  typeTestModifier5
 ]
 
 const typeTestModifier = (input: TestCase) => typeTestModifiers.map(modifier => modifier(input))
@@ -545,15 +555,59 @@ const complexTests1: TestCase[] = [
   }
 ]
 
+const switchTests: TestCase[] = [
+  {
+    input: `match 1 + 1 with {
+      case 1 => 1;
+      case 2 => 2;
+      case 3 => 3;
+      case 4 => 4;
+      case 5 => 5;
+    }`,
+    expected: "Int"
+  },
+  {
+    input: `match [] with {
+      case [] => True;
+      case _ :: _ => False;
+    }`,
+    expected: "Bool"
+  },
+  {
+    input: `match [] with {
+      case [] => ();
+      case _ => ();
+    }`,
+    expected: "Unit"
+  },
+  {
+    input: `match 1 + 1 with {
+      case x => x;
+    }`,
+    expected: "Int"
+  },
+  {
+    input: `match 1 + 1 with {
+      case x => {
+        val isLess = x < 2;
+        if isLess then True else False;
+      };
+    }`,
+    expected: "Bool"
+  }
+]
+
 const runTest = (input: string, expected: string) => {
   const ast = lexAndParseExpr(input)
   const type = typeOfExpr(ast)
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests, listTypeTests).flatMap(typeTestModifier)
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests, listTypeTests, switchTests).flatMap(typeTestModifier)
 
-testCases.forEach(({ input, expected }) => {
+
+
+testCases.forEach(({ input, expected }) => {  
   test(input, () => {
     runTest(input, expected)
   })

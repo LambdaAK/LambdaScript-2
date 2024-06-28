@@ -845,7 +845,16 @@ namespace L9ExprParser {
 
     const [expr, rest] = exprResult.value
 
-    return some([pat, expr, rest])
+    // parse the semicolon
+
+    const tokensAfterSemiColonResult = ParserUtil.assertNextToken(rest, "SemiColonToken");
+
+    if (tokensAfterSemiColonResult.type === "None") return none()
+    const tokensAfterSemiColon = tokensAfterSemiColonResult.value
+
+
+
+    return some([pat, expr, tokensAfterSemiColon])
 
 
   }
@@ -941,21 +950,17 @@ namespace L9ExprParser {
       }
     */
     // parse the match keyword
-
-    console.log("parsing match")
   
     const tokensAfterMatchResult = ParserUtil.assertNextToken(input, "MatchToken")
     if (tokensAfterMatchResult.type === "None") return none()
     const tokensAfterMatch = tokensAfterMatchResult.value
 
-    console.log("A")
     // parse the expression e
 
     const exprResult = exprParser(tokensAfterMatch)
 
     if (exprResult.type === "None") return none()
-    
-    console.log("B")
+  
 
     const [expr, tokensAfterExpr] = exprResult.value
 
@@ -964,8 +969,6 @@ namespace L9ExprParser {
     const tokensAfterWithResult = ParserUtil.assertNextToken(tokensAfterExpr, "WithToken")
     if (tokensAfterWithResult.type === "None") return none()
     const tokensAfterWith = tokensAfterWithResult.value
-
-    console.log("C")
 
     // parse the LBrace
 
