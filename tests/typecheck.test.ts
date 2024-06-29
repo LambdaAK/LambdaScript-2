@@ -550,7 +550,7 @@ const complexTests1: TestCase[] = [
     expected: "Int"
   },
   {
-    input: `{
+    input: `((x : Int) => x){
       val a = 1;
       val b = 2 + a;
       val c = 3 + a + a + a + a * 2 * b;

@@ -1,3 +1,4 @@
+import { DefnNode } from "../defn/defnL1"
 import { L9Expr } from "./L9"
 
 type StringNode = {
@@ -33,6 +34,11 @@ type UnitNode = {
   type: 'UnitNode'
 }
 
+type BlockNode = {
+  type: "BlockNode",
+  statements: (L9Expr | DefnNode)[]
+}
+
 export type L1Factor =
   | StringNode
   | NumberNode
@@ -41,3 +47,4 @@ export type L1Factor =
   | NilNode
   | UnitNode
   | ParenFactorNode
+  | BlockNode

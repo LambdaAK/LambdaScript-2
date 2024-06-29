@@ -17,15 +17,10 @@ type IfNode = {
   elseBranch: L9Expr
 }
 
-type BlockNode = {
-  type: "BlockNode",
-  statements: (L9Expr | DefnNode)[]
-}
-
 type MatchNode = {
   type: "MatchNode",
   expr: L9Expr,
   cases: [PatL2, L9Expr][] // [pattern, body]
 }
 
-export type L9Expr = FunctionNode | IfNode | BlockNode | MatchNode | L8Cons
+export type L9Expr = FunctionNode | IfNode | MatchNode | L8Cons

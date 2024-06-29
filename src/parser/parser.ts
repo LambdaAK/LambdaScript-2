@@ -57,6 +57,8 @@ namespace L1ExprParser {
   var nilParser: Parser<L1Factor>
   var unitParser: Parser<L1Factor>
   var parenFactorParser: Parser<L1Factor>
+  var blockParser: Parser<L1Factor>
+  var statementParser: (input: Token[]) => Maybe<[(L9Expr | DefnNode), Token[]]>
   export var factorParser: Parser<L1Factor>
 
   numberParser = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
@@ -170,7 +172,99 @@ namespace L1ExprParser {
 
   }
 
-  factorParser = ParserUtil.combineParsers([numberParser, stringParser, booleanParser, identifierParser, nilParser, unitParser, parenFactorParser])
+  statementParser = (input: Token[]): Maybe<[(L9Expr | DefnNode), Token[]]> => {
+    // a statement is either a definition or an expression
+    // try to parse a definition
+    const defnResult = DefnParser.defnParser(input)
+    if (defnResult.type === "Some") {
+      return defnResult
+    }
+    // try to parse an expression
+    const exprResult = L9ExprParser.exprParser(input)
+    return exprResult
+  }
+
+  blockParser = (input: Token[]): Maybe<[L1Factor, Token[]]> => {
+    /*
+    {
+      statement1;
+      statement2;
+      ....
+      statementN;
+    }
+
+    statementN is an L9Expr
+    */
+
+    // the first token should be LBrace
+
+    const tokensAfterLBraceResult = ParserUtil.assertNextToken(input, "LBrace")
+    if (tokensAfterLBraceResult.type === "None") return none()
+
+    const tokensAfterLBrace = tokensAfterLBraceResult.value
+
+    const statements: (L9Expr | DefnNode)[] = []
+    
+    let tokens: Token[] = tokensAfterLBrace
+    
+    while (true) {
+      // while we can, parse a statement
+
+      const statementResult = statementParser(tokens)
+
+      // check if it's none or some
+      
+      if (statementResult.type === "None") {
+        break
+      }
+
+      // update the list of statements and list of tokens
+
+      const [statement, rest] = statementResult.value
+
+      statements.push(statement)
+
+      tokens = rest
+
+      // the next token should be a semicolon
+
+      const tokensAfterSemiColonResult = ParserUtil.assertNextToken(tokens, "SemiColonToken")
+
+      if (tokensAfterSemiColonResult.type === "None") {
+        return none()
+      }
+
+      tokens = tokensAfterSemiColonResult.value
+
+    }
+    
+    // verify that the last statement is not a definition
+
+    if (statements.length === 0) return none()
+    
+    const lastStatement = statements[statements.length - 1]
+
+    if (lastStatement.type == "DefnNode") return none()
+
+    // the next token should be RBrace
+
+    const tokensAfterStatementsResult = ParserUtil.assertNextToken(tokens, "RBrace")
+
+    if (tokensAfterStatementsResult.type === "None") return none()
+
+    const tokensAfterStatements = tokensAfterStatementsResult.value
+
+    // finished
+
+    const blockNode: L9Expr = {
+      type: "BlockNode",
+      statements: statements,
+    }
+
+    return some([blockNode, tokensAfterStatements])
+  }
+
+  factorParser = ParserUtil.combineParsers([blockParser, numberParser, stringParser, booleanParser, identifierParser, nilParser, unitParser, parenFactorParser])
 
 }
 
@@ -652,10 +746,6 @@ namespace L9ExprParser {
 
   var ifParser: Parser<L9Expr>
 
-  var statementParser: Parser<L9Expr | DefnNode>
-
-  var blockParser: Parser<L9Expr>
-
   var caseParser: (input: Token[]) => Maybe<[PatL2, L9Expr, Token[]]>
 
   var matchParser: Parser<L9Expr>
@@ -807,19 +897,6 @@ namespace L9ExprParser {
     return some([ifNode, rest3])
   }
 
-
-  statementParser = (input: Token[]): Maybe<[(L9Expr | DefnNode), Token[]]> => {
-    // a statement is either a definition or an expression
-    // try to parse a definition
-    const defnResult = DefnParser.defnParser(input)
-    if (defnResult.type === "Some") {
-      return defnResult
-    }
-    // try to parse an expression
-    const exprResult = exprParser(input)
-    return exprResult
-  }
-
   caseParser = (input: Token[]): Maybe<[PatL2, L9Expr, Token[]]> => {
     // parse the case keyword
 
@@ -856,85 +933,7 @@ namespace L9ExprParser {
   }
 
 
-  blockParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
-    /*
-    {
-      statement1;
-      statement2;
-      ....
-      statementN;
-    }
 
-    statementN is an L9Expr
-    */
-
-    // the first token should be LBrace
-
-    const tokensAfterLBraceResult = ParserUtil.assertNextToken(input, "LBrace")
-    if (tokensAfterLBraceResult.type === "None") return none()
-
-    const tokensAfterLBrace = tokensAfterLBraceResult.value
-
-    const statements: (L9Expr | DefnNode)[] = []
-    
-    let tokens: Token[] = tokensAfterLBrace
-    
-    while (true) {
-      // while we can, parse a statement
-
-      const statementResult = statementParser(tokens)
-
-      // check if it's none or some
-      
-      if (statementResult.type === "None") {
-        break
-      }
-
-      // update the list of statements and list of tokens
-
-      const [statement, rest] = statementResult.value
-
-      statements.push(statement)
-
-      tokens = rest
-
-      // the next token should be a semicolon
-
-      const tokensAfterSemiColonResult = ParserUtil.assertNextToken(tokens, "SemiColonToken")
-
-      if (tokensAfterSemiColonResult.type === "None") {
-        return none()
-      }
-
-      tokens = tokensAfterSemiColonResult.value
-
-    }
-    
-    // verify that the last statement is not a definition
-
-    if (statements.length === 0) return none()
-    
-    const lastStatement = statements[statements.length - 1]
-
-    if (lastStatement.type == "DefnNode") return none()
-
-    // the next token should be RBrace
-
-    const tokensAfterStatementsResult = ParserUtil.assertNextToken(tokens, "RBrace")
-
-    if (tokensAfterStatementsResult.type === "None") return none()
-
-    const tokensAfterStatements = tokensAfterStatementsResult.value
-
-    // finished
-
-    const blockNode: L9Expr = {
-      type: "BlockNode",
-      statements: statements,
-    }
-
-    return some([blockNode, tokensAfterStatements])
-  }
 
   matchParser = (input: Token[]): Maybe<[L9Expr, Token[]]> => {
     /*
@@ -1003,7 +1002,7 @@ namespace L9ExprParser {
     return some([matchNode, tokensAfterRBrace])
   }
 
-  exprParser = ParserUtil.combineParsers([matchParser, blockParser, functionParser, ifParser, L8ExprParser.consParser])
+  exprParser = ParserUtil.combineParsers([matchParser, functionParser, ifParser, L8ExprParser.consParser])
 }
 /*
   PatL1
