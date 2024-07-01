@@ -617,9 +617,7 @@ const runTest = (input: string, expected: string) => {
   expect(stringOfType(fixType(generalizeTypeVars(type)))).toEqual(expected)
 }
 
-const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests, listTypeTests, switchTests).flatMap(typeTestModifier)
-
-
+const testCases = arithTests1.concat(arithTests2, moreComplexIntTypeTests, relBoolTypeTests, functionTypeTests, complexTests1, unitTypeTests, stringTypeTests, listTypeTests, switchTests).flatMap(typeTestModifier).flatMap(typeTestModifier)
 
 testCases.forEach(({ input, expected }) => {  
   test(input, () => {

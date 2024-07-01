@@ -1525,5 +1525,6 @@ namespace DefnParser {
 }
 
 export {
-  L9ExprParser
+  L9ExprParser,
+  DefnParser
 }

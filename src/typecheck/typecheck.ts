@@ -70,7 +70,7 @@ export function objectsEqual(obj1: any, obj2: any): boolean {
  * @param staticEnv The current static environment
  * @returns A new static environment with the binding(s) from `pat` to `type`
  */
-const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
+export const bindPat = (pat: Pat, type: Type, staticEnv: StaticEnv) => {
   switch (pat.type) {
     case "BoolPatAST":
       return staticEnv
@@ -904,9 +904,9 @@ export const fixType = (type: Type) => {
   return fixed
 }
 
-export const typeOfExpr = (expr: Expr): Type => {
+export const typeOfExpr = (expr: Expr, env: ImmMap<string, Type>): Type => {
   // generate the type equations
-  const [t, equations] = generate(expr, new ImmMap([]))
+  const [t, equations] = generate(expr, env)
   // unify the equations
   const unified = unify(equations)
   const tt = getType(t, unified)
